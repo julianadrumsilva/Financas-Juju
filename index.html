@@ -594,9 +594,13 @@
 
   // ---------------- DATA SYNC ----------------
   var syncedCount = 0;
+  var syncedTables = {};
+  var syncErrors = [];
   function startSync() {
     document.getElementById("syncStatus").innerHTML = '<span class="sync-dot"></span>sincronizado';
     syncedCount = 0;
+    syncedTables = {};
+    syncErrors = [];
     TABLES.forEach(function (table) {
       fetchTable(table);
       var ch = sb.channel(table + "_changes")
@@ -604,6 +608,14 @@
         .subscribe();
       subscriptions.push(ch);
     });
+    // safety net: never let one failing table freeze the whole screen on
+    // "Carregando..." forever — force it open after a few seconds no matter what.
+    setTimeout(function () {
+      if (!state.ready) {
+        state.ready = true;
+        render();
+      }
+    }, 6000);
   }
 
   async function fetchTable(table) {
@@ -615,7 +627,14 @@
     else if (table === "brecho_insumos") q = q.order("nome", { ascending: true });
     else q = q.order("data", { ascending: false });
     var res = await q;
-    if (res.error) return;
+    if (res.error) {
+      console.error("Erro ao buscar " + table + ":", res.error);
+      if (syncErrors.indexOf(table) === -1) syncErrors.push(table);
+      if (!syncedTables[table]) { syncedTables[table] = true; syncedCount++; }
+      if (syncedCount >= TABLES.length) state.ready = true;
+      if (state.ready) render();
+      return;
+    }
     var key = KEY_BY_TABLE[table];
     state[key] = res.data || [];
     if (table === "edicoes" && !state.edicaoAtual && state.edicoes.length) {
@@ -627,7 +646,7 @@
     if (table === "brecho_eventos" && !state.eventoBrechoAtual && state.eventosBrecho.length) {
       state.eventoBrechoAtual = state.eventosBrecho[0].id;
     }
-    syncedCount++;
+    if (!syncedTables[table]) { syncedTables[table] = true; syncedCount++; }
     if (syncedCount >= TABLES.length) state.ready = true;
     if (state.ready) render();
   }
@@ -706,8 +725,11 @@
       b.classList.toggle("active", b.dataset.tab === state.tab);
     });
     var el = document.getElementById("content");
-    if (!state.ready) { el.innerHTML = '<div class="loading-msg">Carregando…</div>'; return; }
-    if (state.tab === "painel") el.innerHTML = renderPainel();
+    var errBanner = syncErrors.length
+      ? '<div style="background:#5c1f1f;color:#fff;padding:8px 12px;border-radius:8px;margin-bottom:10px;font-size:13px">Não consegui carregar: ' + syncErrors.join(", ") + '. Os outros dados abaixo carregaram normalmente.</div>'
+      : '';
+    if (!state.ready) { el.innerHTML = errBanner + '<div class="loading-msg">Carregando…</div>'; return; }
+    if (state.tab === "painel") el.innerHTML = errBanner + renderPainel();
     else if (state.tab === "pessoal") el.innerHTML = renderPessoal();
     else if (state.tab === "berga") el.innerHTML = renderBerga();
     else if (state.tab === "contas") el.innerHTML = renderContas();
