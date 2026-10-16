@@ -1,0 +1,1336 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Financas — Pessoal &amp; Bêrga</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+<style>
+  :root {
+    --bg: #14161d;
+    --surface: #1b1e27;
+    --surface-2: #232733;
+    --border: #2e3340;
+    --text: #EDEAE1;
+    --text-dim: #9297a8;
+    --accent-pessoal: #59BFB2;
+    --accent-pessoal-bg: rgba(89,191,178,0.12);
+    --accent-berga: #FF7A33;
+    --accent-berga-2: #E64A19;
+    --accent-berga-bg: rgba(255,122,51,0.14);
+    --accent-violet: #8C7EF6;
+    --accent-violet-2: #5B4FD9;
+    --accent-violet-bg: rgba(140,126,246,0.14);
+    --accent-brecho: #C2578A;
+    --accent-brecho-2: #8E3466;
+    --accent-brecho-bg: rgba(194,87,138,0.14);
+    --danger: #E2685C;
+    --danger-bg: rgba(226,104,92,0.12);
+    --positive: #6FBF7B;
+    --shadow: 0 8px 24px rgba(0,0,0,0.35);
+    color-scheme: dark;
+  }
+  @media (prefers-color-scheme: light) {
+    :root:not([data-theme="dark"]) {
+      --bg: #F5F3ED;
+      --surface: #FFFFFF;
+      --surface-2: #ECE8DC;
+      --border: #DAD4C4;
+      --text: #1C1E24;
+      --text-dim: #6B6F7D;
+      --accent-pessoal: #2C9186;
+      --accent-pessoal-bg: rgba(44,145,134,0.10);
+      --accent-berga: #E0592A;
+      --accent-berga-2: #B8431E;
+      --accent-berga-bg: rgba(224,89,42,0.10);
+      --accent-violet: #6C5CE7;
+      --accent-violet-2: #4B3FB8;
+      --accent-violet-bg: rgba(108,92,231,0.10);
+      --accent-brecho: #A8447A;
+      --accent-brecho-2: #7A2D58;
+      --accent-brecho-bg: rgba(168,68,122,0.10);
+      --danger: #C2493D;
+      --danger-bg: rgba(194,73,61,0.10);
+      --positive: #2F8F45;
+      --shadow: 0 8px 24px rgba(0,0,0,0.08);
+      color-scheme: light;
+    }
+  }
+  :root[data-theme="dark"] { color-scheme: dark; }
+  :root[data-theme="light"] {
+    --bg: #F5F3ED; --surface: #FFFFFF; --surface-2: #ECE8DC; --border: #DAD4C4;
+    --text: #1C1E24; --text-dim: #6B6F7D;
+    --accent-pessoal: #2C9186; --accent-pessoal-bg: rgba(44,145,134,0.10);
+    --accent-berga: #E0592A; --accent-berga-2: #B8431E; --accent-berga-bg: rgba(224,89,42,0.10);
+    --accent-violet: #6C5CE7; --accent-violet-2: #4B3FB8; --accent-violet-bg: rgba(108,92,231,0.10);
+    --accent-brecho: #A8447A; --accent-brecho-2: #7A2D58; --accent-brecho-bg: rgba(168,68,122,0.10);
+    --danger: #C2493D; --danger-bg: rgba(194,73,61,0.10); --positive: #2F8F45;
+    --shadow: 0 8px 24px rgba(0,0,0,0.08); color-scheme: light;
+  }
+  * { box-sizing: border-box; }
+  html, body { height: 100%; }
+  html { scroll-padding-top: env(safe-area-inset-top, 0px); }
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+    -webkit-font-smoothing: antialiased;
+    padding-top: env(safe-area-inset-top, 0px);
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+    min-height: 100%;
+  }
+  h1, h2, h3, .display { font-family: 'Fraunces', Georgia, serif; }
+  .num { font-variant-numeric: tabular-nums; font-feature-settings: "tnum" 1; }
+  button { font-family: inherit; }
+
+  /* ---------- auth screen ---------- */
+  #authScreen {
+    min-height: 100vh; min-height: 100dvh; display: flex; align-items: center; justify-content: center;
+    padding: 24px 16px;
+  }
+  .auth-box { width: 100%; max-width: 360px; }
+  .auth-box h1 { font-size: 26px; margin: 0 0 4px; }
+  .auth-box .tag { color: var(--text-dim); font-size: 13.5px; margin-bottom: 22px; }
+  .auth-tabs { display: flex; gap: 6px; margin-bottom: 16px; }
+  .auth-tabs button {
+    flex: 1; padding: 9px; border-radius: 10px; border: 1px solid var(--border);
+    background: var(--surface); color: var(--text-dim); font-size: 13px; font-weight: 500; cursor: pointer;
+  }
+  .auth-tabs button.active { background: var(--surface-2); color: var(--text); }
+  .auth-box form { display: flex; flex-direction: column; gap: 10px; }
+  .auth-box label { font-size: 11.5px; color: var(--text-dim); display: block; margin-bottom: 4px; }
+  .auth-box input {
+    width: 100%; background: var(--surface); border: 1px solid var(--border); border-radius: 8px;
+    color: var(--text); padding: 11px 12px; font-size: 15px; font-family: inherit;
+  }
+  .auth-box input:focus { outline: 2px solid var(--accent-pessoal); outline-offset: 1px; }
+  .auth-box .btn-primary {
+    margin-top: 4px; padding: 12px; border-radius: 9px; border: none; background: var(--text);
+    color: var(--bg); font-size: 14.5px; font-weight: 600; cursor: pointer;
+  }
+  .auth-box .btn-primary:disabled { opacity: 0.6; }
+  .auth-msg { font-size: 13px; margin-top: 10px; padding: 10px 12px; border-radius: 9px; }
+  .auth-msg.error { background: var(--danger-bg); color: var(--danger); }
+  .auth-msg.ok { background: rgba(111,191,123,0.12); color: var(--positive); }
+
+  /* ---------- layout shell ---------- */
+  #app { max-width: 640px; margin: 0 auto; padding: 20px 16px 96px; display: none; }
+  header.top {
+    display: flex; align-items: flex-start; justify-content: space-between;
+    padding: 4px 2px 18px;
+  }
+  header.top h1 { margin: 0; font-size: 22px; font-weight: 600; letter-spacing: -0.01em; }
+  header.top .sub { color: var(--text-dim); font-size: 12.5px; margin-top: 2px; }
+  #logoutBtn {
+    background: none; border: 1px solid var(--border); color: var(--text-dim); border-radius: 8px;
+    padding: 6px 10px; font-size: 12px; cursor: pointer;
+  }
+
+  /* ---------- bottom nav ---------- */
+  nav.tabs {
+    position: fixed; left: 0; right: 0; bottom: 0; z-index: 20;
+    background: var(--surface);
+    border-top: 1px solid var(--border);
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+    box-shadow: 0 -4px 20px rgba(0,0,0,0.15);
+    display: none;
+  }
+  nav.tabs .row { max-width: 640px; margin: 0 auto; display: flex; }
+  nav.tabs button {
+    flex: 1; background: none; border: none; color: var(--text-dim);
+    padding: 11px 4px 9px; font-size: 11px; cursor: pointer;
+    display: flex; flex-direction: column; align-items: center; gap: 4px;
+    transition: color .15s ease;
+  }
+  nav.tabs button svg { width: 20px; height: 20px; stroke: currentColor; fill: none; stroke-width: 1.6; }
+  nav.tabs button.active { color: var(--text); }
+  nav.tabs button.active svg { stroke: var(--text); }
+  nav.tabs button[data-tab="berga"].active { color: var(--accent-berga); }
+  nav.tabs button[data-tab="berga"].active svg { stroke: var(--accent-berga); }
+  nav.tabs button[data-tab="brecho"].active { color: var(--accent-brecho); }
+  nav.tabs button[data-tab="brecho"].active svg { stroke: var(--accent-brecho); }
+
+  /* ---------- cards / sections ---------- */
+  .card {
+    background: var(--surface); border: 1px solid var(--border); border-radius: 14px;
+    padding: 16px; margin-bottom: 12px;
+  }
+  .grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  .stat { background: var(--surface); border: 1px solid var(--border); border-radius: 14px; padding: 14px 16px; }
+  .stat .label { font-size: 11.5px; color: var(--text-dim); margin-bottom: 6px; }
+  .stat .value { font-size: 21px; font-weight: 600; }
+  .stat.pessoal { border-color: color-mix(in srgb, var(--accent-pessoal) 35%, var(--border)); }
+  .stat.berga { border-color: color-mix(in srgb, var(--accent-berga) 35%, var(--border)); }
+  .stat.pessoal .value { color: var(--accent-pessoal); }
+  .stat.berga .value { color: var(--accent-berga); }
+  .stat.wide { grid-column: 1 / -1; }
+
+  /* ---------- hero card (gradient + gauge) ---------- */
+  .hero {
+    border-radius: 20px; padding: 22px 20px; margin-bottom: 14px; position: relative; overflow: hidden;
+    color: #fff; box-shadow: var(--shadow);
+  }
+  .hero.v { background: linear-gradient(135deg, var(--accent-violet), var(--accent-violet-2)); }
+  .hero.o { background: linear-gradient(135deg, var(--accent-berga), var(--accent-berga-2)); }
+  .hero.b { background: linear-gradient(135deg, var(--accent-brecho), var(--accent-brecho-2)); }
+  .hero .top-row { display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; }
+  .hero .label { font-size: 12.5px; opacity: 0.82; margin-bottom: 6px; }
+  .hero .value { font-size: 30px; font-weight: 700; letter-spacing: -0.01em; }
+  .hero .sub { font-size: 12px; opacity: 0.75; margin-top: 4px; }
+  .hero .gauge { flex-shrink: 0; width: 68px; height: 68px; position: relative; }
+  .hero .gauge svg { width: 100%; height: 100%; transform: rotate(-90deg); }
+  .hero .gauge .pct { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; flex-direction: column; }
+  .hero .gauge .pct b { font-size: 15px; line-height: 1; }
+  .hero .gauge .pct span { font-size: 8px; opacity: 0.8; margin-top: 2px; }
+  .hero .sub-tiles { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 16px; }
+  .hero .sub-tile { background: rgba(255,255,255,0.14); border-radius: 12px; padding: 10px 12px; }
+  .hero .sub-tile .k { font-size: 10.5px; opacity: 0.8; }
+  .hero .sub-tile .v { font-size: 15px; font-weight: 600; margin-top: 2px; }
+
+  .minibar-row { display: flex; align-items: flex-end; gap: 6px; height: 54px; padding: 4px 2px 0; margin-bottom: 4px; overflow-x: auto; }
+  .minibar { flex-shrink: 0; width: 22px; display: flex; flex-direction: column; align-items: center; justify-content: flex-end; height: 100%; gap: 4px; }
+  .minibar .bar { width: 10px; border-radius: 4px 4px 0 0; background: var(--border); min-height: 3px; }
+  .minibar.now .bar { background: linear-gradient(180deg, var(--accent-berga), var(--accent-berga-2)); }
+  .minibar .lbl { font-size: 8.5px; color: var(--text-dim); }
+
+  .section-title { font-size: 13px; text-transform: none; color: var(--text-dim); margin: 22px 2px 10px; font-weight: 500; }
+  .section-title:first-child { margin-top: 0; }
+
+  /* ---------- domain sub-tabs (entradas/saidas) ---------- */
+  .subtabs { display: flex; gap: 6px; margin-bottom: 14px; }
+  .subtabs button {
+    flex: 1; padding: 9px; border-radius: 10px; border: 1px solid var(--border);
+    background: var(--surface); color: var(--text-dim); font-size: 13px; font-weight: 500;
+    cursor: pointer; transition: all .15s ease;
+  }
+  .subtabs button.active { background: var(--surface-2); color: var(--text); }
+
+  /* ---------- list rows ---------- */
+  .row-item {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 12px 4px; border-bottom: 1px solid var(--border);
+    gap: 10px;
+  }
+  .row-item:last-child { border-bottom: none; }
+  .row-item .left { min-width: 0; }
+  .row-item .cat { font-size: 14px; font-weight: 500; }
+  .row-item .meta { font-size: 12px; color: var(--text-dim); margin-top: 2px; }
+  .row-item .right { text-align: right; flex-shrink: 0; }
+  .row-item .amt { font-size: 14.5px; font-weight: 600; }
+  .row-item .amt.out { color: var(--danger); }
+  .row-item .amt.in { color: var(--positive); }
+  .badge {
+    display: inline-block; font-size: 10.5px; padding: 2px 7px; border-radius: 20px;
+    margin-top: 4px; font-weight: 500;
+  }
+  .badge.pending { background: var(--danger-bg); color: var(--danger); }
+  .badge.done { background: rgba(111,191,123,0.12); color: var(--positive); }
+  .del-btn {
+    background: none; border: none; color: var(--text-dim); cursor: pointer; padding: 4px;
+    font-size: 16px; line-height: 1; opacity: 0.6;
+  }
+  .del-btn:hover { opacity: 1; color: var(--danger); }
+  .empty { color: var(--text-dim); font-size: 13.5px; padding: 18px 4px; text-align: center; }
+
+  /* ---------- forms ---------- */
+  .fab {
+    width: 100%; padding: 12px; border-radius: 12px; border: 1px dashed var(--border);
+    background: transparent; color: var(--text-dim); font-size: 13.5px; cursor: pointer;
+    margin-bottom: 4px;
+  }
+  .fab.pessoal:hover { border-color: var(--accent-pessoal); color: var(--accent-pessoal); }
+  .fab.berga:hover { border-color: var(--accent-berga); color: var(--accent-berga); }
+  form.entry {
+    background: var(--surface-2); border-radius: 12px; padding: 14px; margin-bottom: 14px;
+    display: flex; flex-direction: column; gap: 10px;
+  }
+  form.entry .fr { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+  form.entry label { font-size: 11.5px; color: var(--text-dim); display: block; margin-bottom: 4px; }
+  form.entry input, form.entry select, form.entry textarea {
+    width: 100%; background: var(--surface); border: 1px solid var(--border); border-radius: 8px;
+    color: var(--text); padding: 9px 10px; font-size: 14px; font-family: inherit;
+  }
+  form.entry input:focus, form.entry select:focus, form.entry textarea:focus {
+    outline: 2px solid var(--accent-pessoal); outline-offset: 1px;
+  }
+  form.entry .chk { display: flex; align-items: center; gap: 7px; font-size: 13px; color: var(--text); }
+  form.entry .chk input { width: auto; }
+  form.entry .actions { display: flex; gap: 8px; margin-top: 2px; }
+  form.entry .actions button {
+    flex: 1; padding: 10px; border-radius: 9px; border: none; font-size: 13.5px; font-weight: 600; cursor: pointer;
+  }
+  .btn-save { background: var(--text); color: var(--bg); }
+  .btn-cancel { background: var(--surface); color: var(--text-dim); border: 1px solid var(--border) !important; }
+
+  /* ---------- edicao picker ---------- */
+  .edicao-pills { display: flex; gap: 7px; overflow-x: auto; padding: 2px 2px 12px; -webkit-overflow-scrolling: touch; }
+  .edicao-pills::-webkit-scrollbar { display: none; }
+  .pill {
+    flex-shrink: 0; padding: 8px 14px; border-radius: 20px; border: 1px solid var(--border);
+    background: var(--surface); color: var(--text-dim); font-size: 13px; cursor: pointer; white-space: nowrap;
+  }
+  .pill.active { background: var(--accent-berga-bg); border-color: var(--accent-berga); color: var(--accent-berga); font-weight: 600; }
+  .pill.add { border-style: dashed; }
+
+  .lucro-row { display: flex; justify-content: space-between; align-items: baseline; padding: 6px 0; }
+  .lucro-row .k { color: var(--text-dim); font-size: 13px; }
+  .lucro-row .v { font-size: 14.5px; font-weight: 600; }
+  .lucro-total { border-top: 1px solid var(--border); margin-top: 6px; padding-top: 10px; }
+  .lucro-total .v { font-size: 20px; }
+  .lucro-total .v.pos { color: var(--positive); }
+  .lucro-total .v.neg { color: var(--danger); }
+
+  .sync-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--positive); display: inline-block; margin-right: 5px; }
+  .loading-msg { text-align: center; color: var(--text-dim); padding: 60px 20px; font-size: 14px; }
+</style>
+</head>
+<body>
+
+<div id="loadingScreen" style="min-height:100vh;min-height:100dvh;display:flex;align-items:center;justify-content:center;color:var(--text-dim);font-size:14px">
+  Carregando…
+</div>
+
+<div id="authScreen" style="display:none">
+  <div class="auth-box">
+    <h1>Finanças</h1>
+    <div class="tag">Pessoal &amp; Bêrga — acesso privado de vocês duas</div>
+    <div class="auth-tabs">
+      <button data-authtab="entrar" class="active">Entrar</button>
+      <button data-authtab="cadastrar">Criar conta</button>
+    </div>
+    <form id="authForm">
+      <div>
+        <label>E-mail</label>
+        <input required type="email" id="authEmail" autocomplete="email">
+      </div>
+      <div>
+        <label>Senha</label>
+        <div style="position:relative">
+          <input required type="password" id="authPassword" autocomplete="current-password" minlength="6" style="padding-right:40px">
+          <button type="button" id="togglePw" aria-label="Mostrar senha" style="position:absolute;right:6px;top:50%;transform:translateY(-50%);background:none;border:none;color:var(--text-dim);cursor:pointer;padding:6px;font-size:16px;line-height:1">👁</button>
+        </div>
+      </div>
+      <button type="submit" class="btn-primary" id="authSubmit">Entrar</button>
+    </form>
+    <div id="authMsg"></div>
+  </div>
+</div>
+
+<div id="app">
+  <header class="top">
+    <div>
+      <h1>Finanças</h1>
+      <div class="sub" id="syncStatus">conectando…</div>
+    </div>
+    <button id="logoutBtn">Sair</button>
+  </header>
+  <div id="content"><div class="loading-msg">Carregando…</div></div>
+</div>
+
+<nav class="tabs">
+  <div class="row">
+    <button data-tab="painel" class="active">
+      <svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="9" rx="1.5"/><rect x="14" y="3" width="7" height="5" rx="1.5"/><rect x="14" y="12" width="7" height="9" rx="1.5"/><rect x="3" y="16" width="7" height="5" rx="1.5"/></svg>
+      Painel
+    </button>
+    <button data-tab="pessoal">
+      <svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="3.4"/><path d="M5 20c0-3.9 3.1-6.5 7-6.5s7 2.6 7 6.5"/></svg>
+      Pessoal
+    </button>
+    <button data-tab="berga">
+      <svg viewBox="0 0 24 24"><path d="M3 10l9-6 9 6-9 6-9-6z"/><path d="M7 12.5V17c0 1.4 2.2 2.5 5 2.5s5-1.1 5-2.5v-4.5"/></svg>
+      Bêrga
+    </button>
+    <button data-tab="contas">
+      <svg viewBox="0 0 24 24"><rect x="3.5" y="5" width="17" height="14" rx="2"/><path d="M3.5 9.5h17"/><path d="M7 13.5h4"/></svg>
+      Contas
+    </button>
+    <button data-tab="bancos">
+      <svg viewBox="0 0 24 24"><rect x="3" y="6" width="18" height="13" rx="2"/><path d="M3 10h18"/><circle cx="7.5" cy="14.5" r="1"/><path d="M3 6l9-3 9 3"/></svg>
+      Bancos
+    </button>
+    <button data-tab="brecho">
+      <svg viewBox="0 0 24 24"><path d="M6 8h12l1.5 12.5a1.5 1.5 0 01-1.5 1.5H6a1.5 1.5 0 01-1.5-1.5L6 8z"/><path d="M9 8V6a3 3 0 016 0v2"/></svg>
+      Brechó
+    </button>
+  </div>
+</nav>
+
+<script>
+(function () {
+  "use strict";
+
+  var SUPABASE_URL = "https://wubshdrlzkjfhfuaoqli.supabase.co";
+  var SUPABASE_ANON_KEY = "sb_publishable_56QPxZ8CXYr_yBiuyOG_GA_VIn9DG0A";
+  var sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+  var state = {
+    ready: false,
+    entradasPessoal: [],
+    saidasPessoal: [],
+    entradasBerga: [],
+    saidasBerga: [],
+    edicoes: [],
+    tab: "painel",
+    subtabPessoal: "entradas",
+    subtabBerga: "entradas",
+    edicaoAtual: null,
+    openForm: null,
+    editRecord: null,
+    bancos: [],
+    faturas: [],
+    bancoAtual: null,
+    faturaCartaoId: null,
+    garimpos: [],
+    embalagens: [],
+    eventosBrecho: [],
+    eventoBrechoAtual: null,
+    insumos: []
+  };
+
+  var TABLES = ["entradas_pessoal", "saidas_pessoal", "entradas_berga", "saidas_berga", "edicoes", "bancos", "faturas_cartao", "brecho_garimpos", "brecho_embalagens", "brecho_eventos", "brecho_insumos"];
+  var KEY_BY_TABLE = {
+    entradas_pessoal: "entradasPessoal",
+    saidas_pessoal: "saidasPessoal",
+    entradas_berga: "entradasBerga",
+    saidas_berga: "saidasBerga",
+    edicoes: "edicoes",
+    bancos: "bancos",
+    faturas_cartao: "faturas",
+    brecho_garimpos: "garimpos",
+    brecho_embalagens: "embalagens",
+    brecho_eventos: "eventosBrecho",
+    brecho_insumos: "insumos"
+  };
+
+  var CAT_ENTRADA_PESSOAL = ["Salário", "Freela", "Pensão", "Venda", "A receber de alguém", "Outra"];
+  var CAT_SAIDA_PESSOAL = ["Plano Arthur", "Remédios", "Faculdade", "Passagens", "Uber", "Alimentação", "Claro", "Cartão", "Lazer", "Outro"];
+  var CAT_SAIDA_BERGA = ["Organização", "Atrações", "Fotografia", "Videomaker", "Designer", "Materiais", "Brindes", "Impressão", "Decoração", "Aluguel/Estrutura", "Divulgação", "Outro"];
+  var FORMAS_PAG = ["Pix", "Cartão", "Dinheiro", "Transferência"];
+
+  function fmt(n) {
+    n = Number(n) || 0;
+    return n.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+  }
+  function fmtDate(d) {
+    if (!d) return "";
+    var parts = d.split("-");
+    if (parts.length !== 3) return d;
+    return parts[2] + "/" + parts[1] + "/" + parts[0].slice(2);
+  }
+  function todayISO() {
+    var d = new Date();
+    return d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, "0") + "-" + String(d.getDate()).padStart(2, "0");
+  }
+  function isThisMonth(d) {
+    if (!d) return false;
+    var t = todayISO().slice(0, 7);
+    return d.slice(0, 7) === t;
+  }
+  function esc(s) {
+    return String(s == null ? "" : s).replace(/[&<>"']/g, function (c) {
+      return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c];
+    });
+  }
+
+  // ---------------- money mask (BRL, digits fill from the right as cents) ----------------
+  function maskMoneyInput(ev) {
+    var el = ev.target;
+    var digits = el.value.replace(/\D/g, "");
+    digits = digits.replace(/^0+(?=\d)/, "");
+    if (!digits) { el.value = ""; return; }
+    while (digits.length < 3) digits = "0" + digits;
+    var intPart = digits.slice(0, -2).replace(/^0+(?=\d)/, "") || "0";
+    var centsPart = digits.slice(-2);
+    intPart = intPart.replace(/\B(?=(\d{3})+(?!\d))/g, ".");
+    el.value = intPart + "," + centsPart;
+  }
+  function parseMoney(str) {
+    if (!str) return 0;
+    var clean = String(str).replace(/\./g, "").replace(",", ".");
+    var n = parseFloat(clean);
+    return isNaN(n) ? 0 : n;
+  }
+  function toMoneyDisplay(n) {
+    n = Number(n) || 0;
+    return n.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  }
+
+  function heroCard(cls, label, value, sub, pct, tiles) {
+    var gaugeHtml = "";
+    if (pct !== null && pct !== undefined && !isNaN(pct)) {
+      var r = 28, c = 2 * Math.PI * r;
+      var p = Math.max(0, Math.min(100, pct));
+      var dash = (p / 100) * c;
+      gaugeHtml = '<div class="gauge"><svg viewBox="0 0 68 68">' +
+        '<circle cx="34" cy="34" r="' + r + '" fill="none" stroke="rgba(255,255,255,0.25)" stroke-width="7"/>' +
+        '<circle cx="34" cy="34" r="' + r + '" fill="none" stroke="#fff" stroke-width="7" stroke-linecap="round" stroke-dasharray="' + dash + ' ' + c + '"/>' +
+        '</svg><div class="pct"><b>' + Math.round(p) + '%</b><span>livre</span></div></div>';
+    }
+    var tilesHtml = "";
+    if (tiles && tiles.length) {
+      tilesHtml = '<div class="sub-tiles">' + tiles.map(function (t) {
+        return '<div class="sub-tile"><div class="k">' + esc(t.k) + '</div><div class="v num">' + t.v + '</div></div>';
+      }).join("") + '</div>';
+    }
+    return '<div class="hero ' + cls + '">' +
+      '<div class="top-row"><div><div class="label">' + esc(label) + '</div><div class="value num">' + value + '</div>' +
+      (sub ? '<div class="sub">' + esc(sub) + '</div>' : '') + '</div>' + gaugeHtml + '</div>' +
+      tilesHtml +
+      '</div>';
+  }
+
+  // ---------------- AUTH ----------------
+  var authMode = "entrar";
+  document.querySelectorAll("[data-authtab]").forEach(function (b) {
+    b.onclick = function () {
+      authMode = b.dataset.authtab;
+      document.querySelectorAll("[data-authtab]").forEach(function (x) { x.classList.toggle("active", x === b); });
+      document.getElementById("authSubmit").textContent = authMode === "entrar" ? "Entrar" : "Criar conta";
+      document.getElementById("authMsg").innerHTML = "";
+    };
+  });
+
+  try {
+    var savedEmail = window.localStorage.getItem("financas_email");
+    if (savedEmail) document.getElementById("authEmail").value = savedEmail;
+  } catch (e) {}
+
+  document.getElementById("togglePw").onclick = function () {
+    var pw = document.getElementById("authPassword");
+    var isPw = pw.type === "password";
+    pw.type = isPw ? "text" : "password";
+    this.textContent = isPw ? "🙈" : "👁";
+  };
+
+  function withTimeout(promise, ms, msg) {
+    var timeout = new Promise(function (_, reject) {
+      setTimeout(function () { reject(new Error(msg)); }, ms);
+    });
+    return Promise.race([promise, timeout]);
+  }
+
+  document.getElementById("authForm").onsubmit = async function (ev) {
+    ev.preventDefault();
+    var email = document.getElementById("authEmail").value.trim();
+    var password = document.getElementById("authPassword").value;
+    var msg = document.getElementById("authMsg");
+    var btn = document.getElementById("authSubmit");
+    msg.innerHTML = "";
+    btn.disabled = true;
+    btn.textContent = authMode === "entrar" ? "Entrando…" : "Criando…";
+    try {
+      if (authMode === "entrar") {
+        var r = await withTimeout(sb.auth.signInWithPassword({ email: email, password: password }), 15000, "A conexão demorou demais pra responder. Confira sua internet e tenta de novo.");
+        if (r.error) throw r.error;
+        try { window.localStorage.setItem("financas_email", email); } catch (e) {}
+      } else {
+        var r2 = await withTimeout(sb.auth.signUp({ email: email, password: password }), 15000, "A conexão demorou demais pra responder. Confira sua internet e tenta de novo.");
+        if (r2.error) throw r2.error;
+        try { window.localStorage.setItem("financas_email", email); } catch (e) {}
+        if (r2.data && r2.data.user && !r2.data.session) {
+          msg.innerHTML = '<div class="auth-msg ok">Conta criada! Verifique seu e-mail para confirmar antes de entrar.</div>';
+        }
+      }
+    } catch (err) {
+      msg.innerHTML = '<div class="auth-msg error">' + esc(traduzErro(err.message)) + '</div>';
+    }
+    btn.disabled = false;
+    btn.textContent = authMode === "entrar" ? "Entrar" : "Criar conta";
+  };
+
+
+  function traduzErro(m) {
+    if (!m) return "Algo deu errado. Tente de novo.";
+    if (/invalid login credentials/i.test(m)) return "E-mail ou senha incorretos.";
+    if (/already registered|already exists/i.test(m)) return "Esse e-mail já tem conta — tenta entrar.";
+    if (/password.*at least|should be at least/i.test(m)) return "A senha precisa ter pelo menos 6 caracteres.";
+    if (/email not confirmed/i.test(m)) return "Confirme seu e-mail antes de entrar (verifique a caixa de entrada).";
+    return m;
+  }
+
+  document.getElementById("logoutBtn").onclick = function () { sb.auth.signOut(); };
+
+  var subscriptions = [];
+  var syncStarted = false;
+
+  function applyAuthState(session) {
+    var loading = document.getElementById("loadingScreen");
+    if (loading) loading.style.display = "none";
+    if (session) {
+      document.getElementById("authScreen").style.display = "none";
+      document.getElementById("app").style.display = "block";
+      document.querySelector("nav.tabs").style.display = "block";
+      if (!syncStarted) { syncStarted = true; startSync(); }
+    } else {
+      syncStarted = false;
+      document.getElementById("authScreen").style.display = "flex";
+      document.getElementById("app").style.display = "none";
+      document.querySelector("nav.tabs").style.display = "none";
+      subscriptions.forEach(function (ch) { sb.removeChannel(ch); });
+      subscriptions = [];
+      state.ready = false;
+    }
+  }
+
+  // Single source of truth: let the SDK's own onAuthStateChange (which fires
+  // once on load with the recovered session, then again on sign-in/out/refresh)
+  // drive the UI. Calling getSession() separately here as well can race with
+  // this same internal check and trigger Supabase's refresh-token reuse
+  // protection, which invalidates the whole session — that was the bug.
+  sb.auth.onAuthStateChange(function (event, session) {
+    applyAuthState(session);
+  });
+
+  // safety net: never leave the person staring at "Carregando…" forever
+  setTimeout(function () {
+    var loading = document.getElementById("loadingScreen");
+    if (loading && loading.style.display !== "none") applyAuthState(null);
+  }, 5000);
+
+  // ---------------- DATA SYNC ----------------
+  var syncedCount = 0;
+  function startSync() {
+    document.getElementById("syncStatus").innerHTML = '<span class="sync-dot"></span>sincronizado';
+    syncedCount = 0;
+    TABLES.forEach(function (table) {
+      fetchTable(table);
+      var ch = sb.channel(table + "_changes")
+        .on("postgres_changes", { event: "*", schema: "public", table: table }, function () { fetchTable(table); })
+        .subscribe();
+      subscriptions.push(ch);
+    });
+  }
+
+  async function fetchTable(table) {
+    var q = sb.from(table).select("*");
+    if (table === "edicoes") q = q.order("data", { ascending: true });
+    else if (table === "bancos") q = q.order("tipo", { ascending: true }).order("nome", { ascending: true });
+    else if (table === "faturas_cartao") q = q.order("mes", { ascending: true });
+    else if (table === "brecho_eventos") q = q.order("data", { ascending: true });
+    else if (table === "brecho_insumos") q = q.order("nome", { ascending: true });
+    else q = q.order("data", { ascending: false });
+    var res = await q;
+    if (res.error) return;
+    var key = KEY_BY_TABLE[table];
+    state[key] = res.data || [];
+    if (table === "edicoes" && !state.edicaoAtual && state.edicoes.length) {
+      state.edicaoAtual = state.edicoes[0].id;
+    }
+    if (table === "bancos" && !state.bancoAtual && state.bancos.length) {
+      state.bancoAtual = state.bancos[0].id;
+    }
+    if (table === "brecho_eventos" && !state.eventoBrechoAtual && state.eventosBrecho.length) {
+      state.eventoBrechoAtual = state.eventosBrecho[0].id;
+    }
+    syncedCount++;
+    if (syncedCount >= TABLES.length) state.ready = true;
+    if (state.ready) render();
+  }
+
+  // ---------------- computed ----------------
+  function totalRecebidoPessoal() {
+    return state.entradasPessoal.filter(function (e) { return e.status === "recebido"; })
+      .reduce(function (s, e) { return s + Number(e.valor || 0); }, 0);
+  }
+  function totalPagoPessoal() {
+    return state.saidasPessoal.filter(function (e) { return e.status === "pago"; })
+      .reduce(function (s, e) { return s + Number(e.valor || 0); }, 0);
+  }
+  function totalPagoBerga() {
+    return state.entradasBerga.reduce(function (s, e) { return s + Number(e.valor_pago || 0); }, 0);
+  }
+  function totalSaidaBerga() {
+    return state.saidasBerga.filter(function (e) { return e.status === "pago"; })
+      .reduce(function (s, e) { return s + Number(e.valor || 0); }, 0);
+  }
+  function totalOrganizacaoPaga() {
+    return state.saidasBerga.filter(function (e) { return e.status === "pago" && e.categoria === "Organização"; })
+      .reduce(function (s, e) { return s + Number(e.valor || 0); }, 0);
+  }
+  function saldoPessoal() { return totalRecebidoPessoal() + totalOrganizacaoPaga() - totalPagoPessoal(); }
+  function saldoBerga() { return totalPagoBerga() - totalSaidaBerga(); }
+
+  function entradasMes() {
+    var a = state.entradasPessoal.filter(function (e) { return e.status === "recebido" && isThisMonth(e.data); })
+      .reduce(function (s, e) { return s + Number(e.valor || 0); }, 0);
+    var b = state.entradasBerga.filter(function (e) { return isThisMonth(e.data); })
+      .reduce(function (s, e) { return s + Number(e.valor_pago || 0); }, 0);
+    var c = state.saidasBerga.filter(function (e) { return e.status === "pago" && e.categoria === "Organização" && isThisMonth(e.data); })
+      .reduce(function (s, e) { return s + Number(e.valor || 0); }, 0);
+    return a + b + c;
+  }
+  function saidasMes() {
+    var a = state.saidasPessoal.filter(function (e) { return e.status === "pago" && isThisMonth(e.data); })
+      .reduce(function (s, e) { return s + Number(e.valor || 0); }, 0);
+    var b = state.saidasBerga.filter(function (e) { return e.status === "pago" && isThisMonth(e.data); })
+      .reduce(function (s, e) { return s + Number(e.valor || 0); }, 0);
+    return a + b;
+  }
+
+  function aReceber() {
+    var list = [];
+    state.entradasPessoal.filter(function (e) { return e.status === "a_receber"; }).forEach(function (e) {
+      list.push({ desc: e.categoria + (e.obs ? " — " + e.obs : ""), valor: Number(e.valor || 0), data: e.data, origem: "pessoal" });
+    });
+    state.entradasBerga.forEach(function (e) {
+      var pend = Number(e.valor_total || 0) - Number(e.valor_pago || 0);
+      if (pend > 0.004) {
+        var ed = state.edicoes.find(function (x) { return x.id === e.edicao_id; });
+        list.push({ desc: e.marca + " — " + (ed ? ed.nome : "edição"), valor: pend, data: e.data, origem: "berga" });
+      }
+    });
+    list.sort(function (a, b) { return (a.data || "").localeCompare(b.data || ""); });
+    return list;
+  }
+  function aPagar() {
+    var list = [];
+    state.saidasPessoal.filter(function (e) { return e.status === "a_pagar"; }).forEach(function (e) {
+      list.push({ desc: e.categoria + (e.obs ? " — " + e.obs : ""), valor: Number(e.valor || 0), data: e.data, origem: "pessoal" });
+    });
+    state.saidasBerga.filter(function (e) { return e.status === "a_pagar"; }).forEach(function (e) {
+      var ed = state.edicoes.find(function (x) { return x.id === e.edicao_id; });
+      list.push({ desc: e.categoria + " — " + (ed ? ed.nome : "edição"), valor: Number(e.valor || 0), data: e.data, origem: "berga" });
+    });
+    list.sort(function (a, b) { return (a.data || "").localeCompare(b.data || ""); });
+    return list;
+  }
+
+  // ---------------- render ----------------
+  function render() {
+    document.querySelectorAll("nav.tabs button").forEach(function (b) {
+      b.classList.toggle("active", b.dataset.tab === state.tab);
+    });
+    var el = document.getElementById("content");
+    if (!state.ready) { el.innerHTML = '<div class="loading-msg">Carregando…</div>'; return; }
+    if (state.tab === "painel") el.innerHTML = renderPainel();
+    else if (state.tab === "pessoal") el.innerHTML = renderPessoal();
+    else if (state.tab === "berga") el.innerHTML = renderBerga();
+    else if (state.tab === "contas") el.innerHTML = renderContas();
+    else if (state.tab === "bancos") el.innerHTML = renderBancos();
+    else if (state.tab === "brecho") el.innerHTML = renderBrecho();
+    attachHandlers();
+  }
+
+  function renderPainel() {
+    var disp = saldoPessoal() + saldoBerga();
+    var pend = aReceber().length + aPagar().length;
+    var proximas = aPagar().slice(0, 4);
+    var em = entradasMes(), sm = saidasMes();
+    var pctLivre = em > 0 ? ((em - sm) / em) * 100 : 100;
+    var html = '';
+    html += heroCard('v', 'Disponível (pessoal + Bêrga)', fmt(disp), 'do mês: ganhou ' + fmt(em) + ', gastou ' + fmt(sm), pctLivre, [
+      { k: 'Saldo pessoal', v: fmt(saldoPessoal()) },
+      { k: 'Saldo Bêrga', v: fmt(saldoBerga()) }
+    ]);
+    var org = totalOrganizacaoPaga();
+    if (org > 0) {
+      html += '<div class="stat wide"><div class="label">Transferido da Bêrga pra você (Organização)</div><div class="value num" style="color:var(--accent-pessoal)">' + fmt(org) + '</div></div>';
+    }
+
+    html += '<div class="section-title">A vencer / a receber</div>';
+    html += '<div class="card">';
+    if (!proximas.length) {
+      html += '<div class="empty">Nada pendente por aqui. Bom sinal.</div>';
+    } else {
+      proximas.forEach(function (i) {
+        html += rowItem(i.desc, fmtDate(i.data), fmt(i.valor), 'out', null);
+      });
+      if (pend > proximas.length) html += '<div class="empty" style="padding-top:8px">e mais ' + (pend - proximas.length) + ' pendência(s) — veja em Contas</div>';
+    }
+    html += '</div>';
+    return html;
+  }
+
+  function rowItem(cat, meta, amt, cls, delAttr, editAttr, badge) {
+    var h = '<div class="row-item">';
+    h += '<div class="left"><div class="cat">' + esc(cat) + '</div>';
+    if (meta) h += '<div class="meta">' + esc(meta) + '</div>';
+    if (badge) h += '<span class="badge ' + badge.cls + '">' + esc(badge.text) + '</span>';
+    h += '</div>';
+    h += '<div class="right"><div class="amt num ' + (cls || '') + '">' + amt + '</div>';
+    h += '<div style="display:flex;gap:2px;justify-content:flex-end">';
+    if (editAttr) h += '<button class="del-btn" data-edit="' + editAttr + '">✎</button>';
+    if (delAttr) h += '<button class="del-btn" data-del="' + delAttr + '">✕</button>';
+    h += '</div></div></div>';
+    return h;
+  }
+
+  function renderPessoal() {
+    var html = '<div class="subtabs">';
+    html += '<button data-subtab-pessoal="entradas" class="' + (state.subtabPessoal === "entradas" ? "active" : "") + '">Entradas</button>';
+    html += '<button data-subtab-pessoal="saidas" class="' + (state.subtabPessoal === "saidas" ? "active" : "") + '">Saídas</button>';
+    html += '</div>';
+
+    if (state.subtabPessoal === "entradas") {
+      html += state.openForm === "entradaPessoal" ? formEntradaPessoal() : '<button class="fab pessoal" data-open="entradaPessoal">+ Nova entrada</button>';
+      html += '<div class="card" style="margin-top:12px">';
+      var list = state.entradasPessoal;
+      if (!list.length) html += '<div class="empty">Nenhuma entrada lançada ainda.</div>';
+      list.forEach(function (e) {
+        html += rowItem(e.categoria, fmtDate(e.data) + (e.obs ? " · " + e.obs : ""), fmt(e.valor), 'in', "entradas_pessoal:" + e.id, null,
+          e.status === "a_receber" ? { cls: "pending", text: "a receber" } : { cls: "done", text: "recebido" });
+      });
+      html += '</div>';
+    } else {
+      html += state.openForm === "saidaPessoal" ? formSaidaPessoal() : '<button class="fab pessoal" data-open="saidaPessoal">+ Nova saída</button>';
+      html += '<div class="card" style="margin-top:12px">';
+      var list2 = state.saidasPessoal;
+      if (!list2.length) html += '<div class="empty">Nenhuma saída lançada ainda.</div>';
+      list2.forEach(function (e) {
+        html += rowItem(e.categoria + (e.fixo ? " (fixo)" : ""), fmtDate(e.data) + (e.obs ? " · " + e.obs : ""), fmt(e.valor), 'out', "saidas_pessoal:" + e.id, null,
+          e.status === "a_pagar" ? { cls: "pending", text: "a pagar" } : { cls: "done", text: "pago" });
+      });
+      html += '</div>';
+    }
+    return html;
+  }
+
+  function formEntradaPessoal() {
+    var opts = CAT_ENTRADA_PESSOAL.map(function (c) { return '<option value="' + esc(c) + '">' + esc(c) + '</option>'; }).join("");
+    return '<form class="entry" data-form="entradaPessoal">' +
+      '<div class="fr"><div><label>Valor (R$)</label><input required type="text" inputmode="decimal" class="money" placeholder="0,00" name="valor"></div>' +
+      '<div><label>Data</label><input required type="date" name="data" value="' + todayISO() + '"></div></div>' +
+      '<div><label>Categoria</label><select name="categoria">' + opts + '</select></div>' +
+      '<div><label>Status</label><select name="status"><option value="recebido">Recebido</option><option value="a_receber">A receber</option></select></div>' +
+      '<div><label>Observação</label><input type="text" name="obs" placeholder="opcional"></div>' +
+      '<div class="actions"><button type="button" class="btn-cancel" data-close>Cancelar</button><button type="submit" class="btn-save">Salvar</button></div>' +
+      '</form>';
+  }
+  function formSaidaPessoal() {
+    var opts = CAT_SAIDA_PESSOAL.map(function (c) { return '<option value="' + esc(c) + '">' + esc(c) + '</option>'; }).join("");
+    return '<form class="entry" data-form="saidaPessoal">' +
+      '<div class="fr"><div><label>Valor (R$)</label><input required type="text" inputmode="decimal" class="money" placeholder="0,00" name="valor"></div>' +
+      '<div><label>Data</label><input required type="date" name="data" value="' + todayISO() + '"></div></div>' +
+      '<div><label>Categoria</label><select name="categoria">' + opts + '</select></div>' +
+      '<label class="chk"><input type="checkbox" name="fixo"> Gasto fixo mensal</label>' +
+      '<div><label>Status</label><select name="status"><option value="pago">Pago</option><option value="a_pagar">A pagar</option></select></div>' +
+      '<div><label>Observação</label><input type="text" name="obs" placeholder="opcional"></div>' +
+      '<div class="actions"><button type="button" class="btn-cancel" data-close>Cancelar</button><button type="submit" class="btn-save">Salvar</button></div>' +
+      '</form>';
+  }
+
+  function renderBerga() {
+    var html = '<div class="edicao-pills">';
+    state.edicoes.forEach(function (ed) {
+      html += '<button class="pill ' + (state.edicaoAtual === ed.id ? "active" : "") + '" data-edicao="' + ed.id + '">' + esc(ed.nome) + '</button>';
+    });
+    html += '<button class="pill add" data-open="edicao">+ edição</button>';
+    html += '</div>';
+
+    if (state.openForm === "edicao") html += formEdicao(state.editRecord);
+
+    if (!state.edicoes.length) {
+      html += '<div class="card"><div class="empty">Cadastre a primeira edição da Bêrga para começar a lançar inscrições e gastos.</div></div>';
+      return html;
+    }
+    var ed = state.edicoes.find(function (e) { return e.id === state.edicaoAtual; }) || state.edicoes[0];
+    if (!ed) return html;
+
+    if (state.openForm !== "edicao") {
+      html += '<div style="display:flex;justify-content:flex-end;gap:14px;margin:-8px 2px 10px;font-size:12px">' +
+        '<button class="del-btn" style="font-size:12px" data-edit="edicoes:' + ed.id + '">✎ editar esta edição</button>' +
+        '<button class="del-btn" style="font-size:12px" data-del="edicoes:' + ed.id + '">✕ excluir</button>' +
+        '</div>';
+    }
+
+    var entradasEd = state.entradasBerga.filter(function (e) { return e.edicao_id === ed.id; });
+    var saidasEd = state.saidasBerga.filter(function (e) { return e.edicao_id === ed.id; });
+    var receita = entradasEd.reduce(function (s, e) { return s + Number(e.valor_pago || 0); }, 0);
+    var gasto = saidasEd.filter(function (e) { return e.status === "pago"; }).reduce(function (s, e) { return s + Number(e.valor || 0); }, 0);
+    var lucro = receita - gasto;
+    var margem = receita > 0 ? (lucro / receita) * 100 : 0;
+
+    html += heroCard('o', ed.nome + ' — lucro da edição', fmt(lucro), receita > 0 ? 'margem sobre a receita' : 'ainda sem receita lançada', receita > 0 ? margem : null, [
+      { k: 'Receita (recebido)', v: fmt(receita) },
+      { k: 'Gastos (pagos)', v: fmt(gasto) }
+    ]);
+
+    html += '<div class="subtabs">';
+    html += '<button data-subtab-berga="entradas" class="' + (state.subtabBerga === "entradas" ? "active" : "") + '">Inscrições</button>';
+    html += '<button data-subtab-berga="saidas" class="' + (state.subtabBerga === "saidas" ? "active" : "") + '">Gastos</button>';
+    html += '</div>';
+
+    if (state.subtabBerga === "entradas") {
+      html += (state.openForm === "entradaBerga") ? formEntradaBerga(ed, state.editRecord) : '<button class="fab berga" data-open="entradaBerga">+ Nova inscrição</button>';
+      html += '<div class="card" style="margin-top:12px">';
+      if (!entradasEd.length) html += '<div class="empty">Nenhuma inscrição lançada para esta edição.</div>';
+      entradasEd.forEach(function (e) {
+        var pend = Number(e.valor_total || 0) - Number(e.valor_pago || 0);
+        html += rowItem(e.marca, fmtDate(e.data) + " · " + (e.forma || "") + (pend > 0.004 ? " · falta " + fmt(pend) : ""),
+          fmt(e.valor_total), 'in', "entradas_berga:" + e.id, "entradas_berga:" + e.id,
+          pend > 0.004 ? { cls: "pending", text: "parcial" } : { cls: "done", text: "quitado" });
+      });
+      html += '</div>';
+    } else {
+      html += (state.openForm === "saidaBerga") ? formSaidaBerga(ed, state.editRecord) : '<button class="fab berga" data-open="saidaBerga">+ Novo gasto</button>';
+      html += '<div class="card" style="margin-top:12px">';
+      if (!saidasEd.length) html += '<div class="empty">Nenhum gasto lançado para esta edição.</div>';
+      saidasEd.forEach(function (e) {
+        var isOrg = e.categoria === "Organização";
+        var badge = e.status === "a_pagar" ? { cls: "pending", text: "a pagar" } : (isOrg ? { cls: "done", text: "➜ transferido p/ pessoal" } : { cls: "done", text: "pago" });
+        html += rowItem(e.categoria, fmtDate(e.data) + (e.obs ? " · " + e.obs : ""), fmt(e.valor), 'out', "saidas_berga:" + e.id, "saidas_berga:" + e.id, badge);
+      });
+      html += '</div>';
+    }
+    return html;
+  }
+
+  function formEdicao(rec) {
+    return '<form class="entry" data-form="edicao"' + (rec ? ' data-edit-id="' + rec.id + '"' : '') + '>' +
+      '<div><label>Nome da edição</label><input required type="text" name="nome" placeholder="ex.: 17/10 ou 09–14/11" value="' + esc(rec ? rec.nome : "") + '"></div>' +
+      '<div><label>Data de início</label><input required type="date" name="data" value="' + esc(rec ? rec.data : todayISO()) + '"></div></div>' +
+      '<div class="actions"><button type="button" class="btn-cancel" data-close>Cancelar</button><button type="submit" class="btn-save">' + (rec ? "Atualizar" : "Criar edição") + '</button></div>' +
+      '</form>';
+  }
+  function formEntradaBerga(ed, rec) {
+    var opts = FORMAS_PAG.map(function (f) { return '<option value="' + esc(f) + '"' + (rec && rec.forma === f ? " selected" : "") + '>' + esc(f) + '</option>'; }).join("");
+    return '<form class="entry" data-form="entradaBerga"' + (rec ? ' data-edit-id="' + rec.id + '"' : '') + '>' +
+      '<div><label>Marca / expositor</label><input required type="text" name="marca" value="' + esc(rec ? rec.marca : "") + '"></div>' +
+      '<div class="fr"><div><label>Valor total (R$)</label><input required type="text" inputmode="decimal" class="money" placeholder="0,00" name="valor_total" value="' + (rec ? toMoneyDisplay(rec.valor_total) : "") + '"></div>' +
+      '<div><label>Já pago (R$)</label><input required type="text" inputmode="decimal" class="money" placeholder="0,00" name="valor_pago" value="' + (rec ? toMoneyDisplay(rec.valor_pago) : "") + '"></div></div>' +
+      '<div class="fr"><div><label>Forma</label><select name="forma">' + opts + '</select></div>' +
+      '<div><label>Data</label><input required type="date" name="data" value="' + esc(rec ? rec.data : todayISO()) + '"></div></div>' +
+      '<div class="actions"><button type="button" class="btn-cancel" data-close>Cancelar</button><button type="submit" class="btn-save">' + (rec ? "Atualizar" : "Salvar") + '</button></div>' +
+      '</form>';
+  }
+  function formSaidaBerga(ed, rec) {
+    var opts = CAT_SAIDA_BERGA.map(function (c) { return '<option value="' + esc(c) + '"' + (rec && rec.categoria === c ? " selected" : "") + '>' + esc(c) + '</option>'; }).join("");
+    return '<form class="entry" data-form="saidaBerga"' + (rec ? ' data-edit-id="' + rec.id + '"' : '') + '>' +
+      '<div class="fr"><div><label>Valor (R$)</label><input required type="text" inputmode="decimal" class="money" placeholder="0,00" name="valor" value="' + (rec ? toMoneyDisplay(rec.valor) : "") + '"></div>' +
+      '<div><label>Data</label><input required type="date" name="data" value="' + esc(rec ? rec.data : todayISO()) + '"></div></div>' +
+      '<div><label>Categoria</label><select name="categoria">' + opts + '</select></div>' +
+      '<div><label>Status</label><select name="status"><option value="pago"' + (rec && rec.status === "pago" ? " selected" : "") + '>Pago</option><option value="a_pagar"' + (rec && rec.status === "a_pagar" ? " selected" : "") + '>A pagar</option></select></div>' +
+      '<div><label>Observação</label><input type="text" name="obs" placeholder="opcional" value="' + esc(rec ? rec.obs : "") + '"></div>' +
+      '<div class="actions"><button type="button" class="btn-cancel" data-close>Cancelar</button><button type="submit" class="btn-save">' + (rec ? "Atualizar" : "Salvar") + '</button></div>' +
+      '</form>';
+  }
+
+  function renderContas() {
+    var rec = aReceber(), pag = aPagar();
+    var totRec = rec.reduce(function (s, i) { return s + i.valor; }, 0);
+    var totPag = pag.reduce(function (s, i) { return s + i.valor; }, 0);
+    var html = '';
+    html += '<div class="grid2">';
+    html += '<div class="stat"><div class="label">Total a receber</div><div class="value num" style="color:var(--positive)">' + fmt(totRec) + '</div></div>';
+    html += '<div class="stat"><div class="label">Total a pagar</div><div class="value num" style="color:var(--danger)">' + fmt(totPag) + '</div></div>';
+    html += '</div>';
+
+    html += '<div class="section-title">A receber</div><div class="card">';
+    if (!rec.length) html += '<div class="empty">Nada pendente de recebimento.</div>';
+    rec.forEach(function (i) {
+      html += rowItem(i.desc, fmtDate(i.data) + " · " + (i.origem === "berga" ? "Bêrga" : "pessoal"), fmt(i.valor), 'in');
+    });
+    html += '</div>';
+
+    html += '<div class="section-title">A pagar</div><div class="card">';
+    if (!pag.length) html += '<div class="empty">Nada pendente de pagamento.</div>';
+    pag.forEach(function (i) {
+      var vencido = i.data && i.data < todayISO();
+      html += rowItem(i.desc, (vencido ? "vencida · " : "") + fmtDate(i.data) + " · " + (i.origem === "berga" ? "Bêrga" : "pessoal"), fmt(i.valor), 'out');
+    });
+    html += '</div>';
+    return html;
+  }
+
+  function mesLabel(m) {
+    if (!m) return "";
+    var parts = m.split("-");
+    if (parts.length !== 2) return m;
+    var nomes = ["", "Jan", "Fev", "Mar", "Abr", "Mai", "Jun", "Jul", "Ago", "Set", "Out", "Nov", "Dez"];
+    return (nomes[parseInt(parts[1], 10)] || m) + "/" + parts[0].slice(2);
+  }
+
+  function renderBancos() {
+    var contas = state.bancos.filter(function (b) { return b.tipo === "conta"; });
+    var cartoes = state.bancos.filter(function (b) { return b.tipo === "cartao"; });
+    var totalContas = contas.reduce(function (s, b) { return s + Number(b.saldo || 0); }, 0);
+    var totalFaturasAbertas = state.faturas.reduce(function (s, f) { return s + Number(f.valor || 0); }, 0);
+
+    var html = heroCard('v', 'Total em contas', fmt(totalContas), contas.length + ' conta(s) cadastrada(s)', null, [
+      { k: 'Faturas em aberto', v: fmt(totalFaturasAbertas) },
+      { k: 'Cartões', v: String(cartoes.length) }
+    ]);
+
+    html += '<div class="section-title">Contas</div>';
+    html += (state.openForm === "banco") ? formBanco(state.editRecord) : '<button class="fab pessoal" data-open="banco">+ Nova conta</button>';
+    html += '<div class="card" style="margin-top:12px">';
+    if (!contas.length) html += '<div class="empty">Nenhuma conta cadastrada.</div>';
+    contas.forEach(function (b) {
+      html += rowItem(b.nome, "conta", fmt(b.saldo), 'in', "bancos:" + b.id, "bancos:" + b.id);
+    });
+    html += '</div>';
+
+    html += '<div class="section-title">Cartões de crédito</div>';
+    html += (state.openForm === "cartao") ? formCartao(state.editRecord) : '<button class="fab pessoal" data-open="cartao">+ Novo cartão</button>';
+    if (!cartoes.length) html += '<div class="card"><div class="empty">Nenhum cartão cadastrado.</div></div>';
+    cartoes.forEach(function (cRec) {
+      var faturasC = state.faturas.filter(function (f) { return f.banco_id === cRec.id; }).slice().sort(function (a, b) { return (a.mes || "").localeCompare(b.mes || ""); });
+      var mesAtual = todayISO().slice(0, 7);
+      var faturaAtual = faturasC.find(function (f) { return f.mes === mesAtual; }) || faturasC[0];
+      var limite = Number(cRec.limite || 0);
+      var pctLivre = limite > 0 && faturaAtual ? ((limite - Number(faturaAtual.valor || 0)) / limite) * 100 : null;
+
+      html += heroCard('v', cRec.nome, fmt(limite), faturaAtual ? ('fatura ' + mesLabel(faturaAtual.mes) + ': ' + fmt(faturaAtual.valor)) : 'sem fatura lançada', pctLivre, null);
+
+      html += '<div class="card" style="margin-top:-4px">';
+      html += '<div style="display:flex;justify-content:flex-end;gap:2px;margin-bottom:2px"><button class="del-btn" data-edit="bancos:' + cRec.id + '">✎ editar cartão</button><button class="del-btn" data-del="bancos:' + cRec.id + '">✕</button></div>';
+      if (faturasC.length) {
+        var maxVal = Math.max.apply(null, faturasC.map(function (f) { return Number(f.valor || 0); })) || 1;
+        html += '<div class="minibar-row">';
+        faturasC.forEach(function (f) {
+          var h = Math.max(6, (Number(f.valor || 0) / maxVal) * 46);
+          html += '<div class="minibar' + (f.mes === mesAtual ? ' now' : '') + '"><div class="bar" style="height:' + h + 'px"></div><div class="lbl">' + esc(mesLabel(f.mes)) + '</div></div>';
+        });
+        html += '</div>';
+        faturasC.forEach(function (f) {
+          html += rowItem(mesLabel(f.mes), "fatura", fmt(f.valor), 'out', "faturas_cartao:" + f.id, "faturas_cartao:" + f.id);
+        });
+      } else {
+        html += '<div class="empty">Nenhuma fatura lançada.</div>';
+      }
+      if (state.openForm === "fatura" && state.faturaCartaoId === cRec.id) {
+        html += formFatura(state.editRecord);
+      } else {
+        html += '<button class="fab pessoal" data-open-fatura="' + cRec.id + '" style="margin-top:8px">+ Fatura</button>';
+      }
+      html += '</div>';
+    });
+
+    return html;
+  }
+
+  function formBanco(rec) {
+    return '<form class="entry" data-form="banco"' + (rec ? ' data-edit-id="' + rec.id + '"' : '') + '>' +
+      '<div><label>Nome da conta</label><input required type="text" name="nome" value="' + esc(rec ? rec.nome : "") + '"></div>' +
+      '<div><label>Saldo atual (R$)</label><input required type="text" inputmode="decimal" class="money" placeholder="0,00" name="saldo" value="' + (rec ? toMoneyDisplay(rec.saldo) : "") + '"></div>' +
+      '<div class="actions"><button type="button" class="btn-cancel" data-close>Cancelar</button><button type="submit" class="btn-save">' + (rec ? "Atualizar" : "Salvar") + '</button></div>' +
+      '</form>';
+  }
+  function formCartao(rec) {
+    return '<form class="entry" data-form="cartao"' + (rec ? ' data-edit-id="' + rec.id + '"' : '') + '>' +
+      '<div><label>Nome do cartão</label><input required type="text" name="nome" value="' + esc(rec ? rec.nome : "") + '"></div>' +
+      '<div><label>Limite total (R$)</label><input required type="text" inputmode="decimal" class="money" placeholder="0,00" name="limite" value="' + (rec ? toMoneyDisplay(rec.limite) : "") + '"></div>' +
+      '<div class="actions"><button type="button" class="btn-cancel" data-close>Cancelar</button><button type="submit" class="btn-save">' + (rec ? "Atualizar" : "Salvar") + '</button></div>' +
+      '</form>';
+  }
+  function formFatura(rec) {
+    return '<form class="entry" data-form="fatura"' + (rec ? ' data-edit-id="' + rec.id + '"' : '') + '>' +
+      '<div class="fr"><div><label>Mês</label><input required type="month" name="mes" value="' + esc(rec ? rec.mes : "") + '"></div>' +
+      '<div><label>Valor (R$)</label><input required type="text" inputmode="decimal" class="money" placeholder="0,00" name="valor" value="' + (rec ? toMoneyDisplay(rec.valor) : "") + '"></div></div>' +
+      '<div class="actions"><button type="button" class="btn-cancel" data-close>Cancelar</button><button type="submit" class="btn-save">' + (rec ? "Atualizar" : "Salvar") + '</button></div>' +
+      '</form>';
+  }
+
+  // ---------------- Brechó ----------------
+  function custoPorPecaBrecho() {
+    var totalGarimpo = state.garimpos.reduce(function (s, g) { return s + Number(g.valor_garimpo || 0) + Number(g.valor_transporte || 0); }, 0);
+    var totalPecas = state.garimpos.reduce(function (s, g) { return s + Number(g.quantidade_pecas || 0); }, 0);
+    return totalPecas > 0 ? totalGarimpo / totalPecas : 0;
+  }
+  function estoqueBrecho() {
+    var totalPecas = state.garimpos.reduce(function (s, g) { return s + Number(g.quantidade_pecas || 0); }, 0);
+    var totalVendido = state.eventosBrecho.reduce(function (s, e) { return s + Number(e.quantidade_vendida || 0); }, 0);
+    return totalPecas - totalVendido;
+  }
+
+  function renderBrecho() {
+    var custoPeca = custoPorPecaBrecho();
+    var estoque = estoqueBrecho();
+    var totalInvestido = state.garimpos.reduce(function (s, g) { return s + Number(g.valor_garimpo || 0) + Number(g.valor_transporte || 0); }, 0);
+    var totalEmbalagem = state.embalagens.reduce(function (s, e) { return s + Number(e.valor || 0); }, 0);
+    var totalArrecadado = state.eventosBrecho.reduce(function (s, e) { return s + Number(e.valor_arrecadado || 0); }, 0);
+    var lucroTotal = state.eventosBrecho.reduce(function (s, e) {
+      var custo = custoPeca * Number(e.quantidade_vendida || 0);
+      return s + (Number(e.valor_arrecadado || 0) - custo - Number(e.valor_inscricao || 0) - Number(e.valor_alimentacao || 0));
+    }, 0) - totalEmbalagem;
+
+    var html = heroCard('b', 'Lucro do brechó (todos os eventos)', fmt(lucroTotal), 'arrecadado ' + fmt(totalArrecadado) + ' · investido ' + fmt(totalInvestido), null, [
+      { k: 'Estoque atual', v: estoque + ' peça(s)' },
+      { k: 'Custo médio/peça', v: fmt(custoPeca) }
+    ]);
+
+    html += '<div class="section-title">Garimpos (compras de estoque)</div>';
+    html += (state.openForm === "garimpo") ? formGarimpo(state.editRecord) : '<button class="fab pessoal" data-open="garimpo">+ Novo garimpo</button>';
+    html += '<div class="card" style="margin-top:12px">';
+    if (!state.garimpos.length) html += '<div class="empty">Nenhum garimpo lançado ainda.</div>';
+    state.garimpos.forEach(function (g) {
+      var custoUnit = Number(g.quantidade_pecas) > 0 ? (Number(g.valor_garimpo || 0) + Number(g.valor_transporte || 0)) / Number(g.quantidade_pecas) : 0;
+      html += rowItem(g.quantidade_pecas + ' peça(s)', fmtDate(g.data) + ' · garimpo ' + fmt(g.valor_garimpo) + ' + transporte ' + fmt(g.valor_transporte) + ' · ' + fmt(custoUnit) + '/peça',
+        fmt(Number(g.valor_garimpo || 0) + Number(g.valor_transporte || 0)), 'out', "brecho_garimpos:" + g.id, "brecho_garimpos:" + g.id);
+    });
+    html += '</div>';
+
+    html += '<div class="section-title">Embalagens</div>';
+    html += (state.openForm === "embalagem") ? formEmbalagem(state.editRecord) : '<button class="fab pessoal" data-open="embalagem">+ Nova compra de embalagem</button>';
+    html += '<div class="card" style="margin-top:12px">';
+    if (!state.embalagens.length) html += '<div class="empty">Nenhuma embalagem lançada ainda.</div>';
+    state.embalagens.forEach(function (e) {
+      var unit = Number(e.quantidade) > 0 ? Number(e.valor || 0) / Number(e.quantidade) : 0;
+      html += rowItem(e.quantidade + ' unid.', fmtDate(e.data) + ' · ' + fmt(unit) + '/unid.' + (e.obs ? ' · ' + e.obs : ''), fmt(e.valor), 'out', "brecho_embalagens:" + e.id, "brecho_embalagens:" + e.id);
+    });
+    html += '</div>';
+
+    html += '<div class="section-title">Estoque de materiais</div>';
+    html += (state.openForm === "insumo") ? formInsumo(state.editRecord) : '<button class="fab pessoal" data-open="insumo">+ Novo item</button>';
+    html += '<div class="card" style="margin-top:12px">';
+    if (!state.insumos.length) html += '<div class="empty">Nenhum item cadastrado.</div>';
+    state.insumos.forEach(function (i) {
+      html += rowItem(i.nome, i.obs || "estoque", String(i.quantidade), 'in', "brecho_insumos:" + i.id, "brecho_insumos:" + i.id);
+    });
+    html += '</div>';
+
+    html += '<div class="section-title">Eventos de venda</div>';
+    html += '<div class="edicao-pills">';
+    state.eventosBrecho.forEach(function (ev) {
+      html += '<button class="pill ' + (state.eventoBrechoAtual === ev.id ? "active" : "") + '" data-evento-brecho="' + ev.id + '" style="' + (state.eventoBrechoAtual === ev.id ? 'background:var(--accent-brecho-bg);border-color:var(--accent-brecho);color:var(--accent-brecho)' : '') + '">' + esc(ev.nome) + '</button>';
+    });
+    html += '<button class="pill add" data-open="eventoBrecho">+ evento</button>';
+    html += '</div>';
+
+    if (state.openForm === "eventoBrecho") html += formEventoBrecho(state.editRecord);
+
+    if (!state.eventosBrecho.length) {
+      html += '<div class="card"><div class="empty">Cadastre o primeiro evento de venda do brechó.</div></div>';
+      return html;
+    }
+    var ev = state.eventosBrecho.find(function (x) { return x.id === state.eventoBrechoAtual; }) || state.eventosBrecho[0];
+    if (!ev) return html;
+
+    var custoVendido = custoPeca * Number(ev.quantidade_vendida || 0);
+    var lucroEv = Number(ev.valor_arrecadado || 0) - custoVendido - Number(ev.valor_inscricao || 0) - Number(ev.valor_alimentacao || 0);
+
+    if (state.openForm !== "eventoBrecho") {
+      html += '<div style="display:flex;justify-content:flex-end;gap:14px;margin:-8px 2px 10px;font-size:12px">' +
+        '<button class="del-btn" style="font-size:12px" data-edit="brecho_eventos:' + ev.id + '">✎ editar</button>' +
+        '<button class="del-btn" style="font-size:12px" data-del="brecho_eventos:' + ev.id + '">✕ excluir</button>' +
+        '</div>';
+    }
+
+    var aindaNaoAconteceu = ev.data > todayISO() && !Number(ev.quantidade_vendida) && !Number(ev.valor_arrecadado);
+    if (aindaNaoAconteceu) {
+      html += '<div class="card"><div style="display:flex;align-items:center;gap:8px;margin-bottom:6px">' +
+        '<span class="badge pending" style="margin-top:0">agendado</span><h3 style="margin:0;font-size:15px">' + esc(ev.nome) + '</h3></div>' +
+        '<div class="lucro-row"><span class="k">Data</span><span class="v num">' + fmtDate(ev.data) + '</span></div>' +
+        (Number(ev.valor_inscricao) ? '<div class="lucro-row"><span class="k">Inscrição já paga</span><span class="v num">' + fmt(ev.valor_inscricao) + '</span></div>' : '') +
+        '<div class="empty" style="padding-top:10px">Lucro aparece assim que você lançar a quantidade vendida e o total arrecadado, depois do evento.</div>' +
+        '</div>';
+      return html;
+    }
+
+    html += heroCard('b', ev.nome + ' — lucro do evento', fmt(lucroEv), ev.quantidade_vendida + ' peça(s) vendida(s) a ' + fmt(custoPeca) + '/peça de custo', null, [
+      { k: 'Arrecadado', v: fmt(ev.valor_arrecadado) },
+      { k: 'Custo das peças', v: fmt(custoVendido) },
+      { k: 'Inscrição', v: fmt(ev.valor_inscricao) },
+      { k: 'Alimentação', v: fmt(ev.valor_alimentacao) }
+    ]);
+
+    return html;
+  }
+
+  function formInsumo(rec) {
+    return '<form class="entry" data-form="insumo"' + (rec ? ' data-edit-id="' + rec.id + '"' : '') + '>' +
+      '<div><label>Nome do item</label><input required type="text" name="nome" placeholder="ex.: Sacolinhas, Mimos, Adesivos" value="' + esc(rec ? rec.nome : "") + '"></div>' +
+      '<div><label>Quantidade em estoque</label><input required type="number" step="1" name="quantidade" value="' + (rec ? rec.quantidade : "0") + '"></div>' +
+      '<div><label>Observação</label><input type="text" name="obs" placeholder="opcional" value="' + esc(rec ? rec.obs : "") + '"></div>' +
+      '<div class="actions"><button type="button" class="btn-cancel" data-close>Cancelar</button><button type="submit" class="btn-save">' + (rec ? "Atualizar" : "Salvar") + '</button></div>' +
+      '</form>';
+  }
+  function formGarimpo(rec) {
+    return '<form class="entry" data-form="garimpo"' + (rec ? ' data-edit-id="' + rec.id + '"' : '') + '>' +
+      '<div class="fr"><div><label>Gasto de garimpo (R$)</label><input required type="text" inputmode="decimal" class="money" placeholder="0,00" name="valor_garimpo" value="' + (rec ? toMoneyDisplay(rec.valor_garimpo) : "") + '"></div>' +
+      '<div><label>Gasto de transporte (R$)</label><input required type="text" inputmode="decimal" class="money" placeholder="0,00" name="valor_transporte" value="' + (rec ? toMoneyDisplay(rec.valor_transporte) : "") + '"></div></div>' +
+      '<div class="fr"><div><label>Quantidade de peças</label><input required type="number" min="0" step="1" name="quantidade_pecas" value="' + (rec ? rec.quantidade_pecas : "") + '"></div>' +
+      '<div><label>Data</label><input required type="date" name="data" value="' + esc(rec ? rec.data : todayISO()) + '"></div></div>' +
+      '<div><label>Observação</label><input type="text" name="obs" placeholder="opcional" value="' + esc(rec ? rec.obs : "") + '"></div>' +
+      '<div class="actions"><button type="button" class="btn-cancel" data-close>Cancelar</button><button type="submit" class="btn-save">' + (rec ? "Atualizar" : "Salvar") + '</button></div>' +
+      '</form>';
+  }
+  function formEmbalagem(rec) {
+    return '<form class="entry" data-form="embalagem"' + (rec ? ' data-edit-id="' + rec.id + '"' : '') + '>' +
+      '<div class="fr"><div><label>Valor (R$)</label><input required type="text" inputmode="decimal" class="money" placeholder="0,00" name="valor" value="' + (rec ? toMoneyDisplay(rec.valor) : "") + '"></div>' +
+      '<div><label>Quantidade (unid.)</label><input required type="number" min="0" step="1" name="quantidade" value="' + (rec ? rec.quantidade : "") + '"></div></div>' +
+      '<div><label>Data</label><input required type="date" name="data" value="' + esc(rec ? rec.data : todayISO()) + '"></div>' +
+      '<div><label>Observação</label><input type="text" name="obs" placeholder="opcional" value="' + esc(rec ? rec.obs : "") + '"></div>' +
+      '<div class="actions"><button type="button" class="btn-cancel" data-close>Cancelar</button><button type="submit" class="btn-save">' + (rec ? "Atualizar" : "Salvar") + '</button></div>' +
+      '</form>';
+  }
+  function formEventoBrecho(rec) {
+    return '<form class="entry" data-form="eventoBrecho"' + (rec ? ' data-edit-id="' + rec.id + '"' : '') + '>' +
+      '<div><label>Nome do evento</label><input required type="text" name="nome" value="' + esc(rec ? rec.nome : "") + '"></div>' +
+      '<div><label>Data</label><input required type="date" name="data" value="' + esc(rec ? rec.data : todayISO()) + '"></div>' +
+      '<div class="fr"><div><label>Inscrição (R$)</label><input type="text" inputmode="decimal" class="money" placeholder="0,00" name="valor_inscricao" value="' + (rec ? toMoneyDisplay(rec.valor_inscricao) : "") + '"></div>' +
+      '<div><label>Alimentação (R$)</label><input type="text" inputmode="decimal" class="money" placeholder="0,00" name="valor_alimentacao" value="' + (rec ? toMoneyDisplay(rec.valor_alimentacao) : "") + '"></div></div>' +
+      '<div class="sub" style="margin:2px 2px 4px;color:var(--text-dim);font-size:11.5px">Preencha o que já souber. Qtd. vendida e arrecadado dá pra deixar em branco até o evento acontecer.</div>' +
+      '<div class="fr"><div><label>Qtd. vendida</label><input type="number" min="0" step="1" name="quantidade_vendida" value="' + (rec ? rec.quantidade_vendida : "") + '" placeholder="0"></div>' +
+      '<div><label>Total arrecadado (R$)</label><input type="text" inputmode="decimal" class="money" placeholder="0,00" name="valor_arrecadado" value="' + (rec ? toMoneyDisplay(rec.valor_arrecadado) : "") + '"></div></div>' +
+      '<div><label>Observação</label><input type="text" name="obs" placeholder="opcional" value="' + esc(rec ? rec.obs : "") + '"></div>' +
+      '<div class="actions"><button type="button" class="btn-cancel" data-close>Cancelar</button><button type="submit" class="btn-save">' + (rec ? "Atualizar" : "Salvar") + '</button></div>' +
+      '</form>';
+  }
+
+  // ---------------- events ----------------
+  function attachHandlers() {
+    var c = document.getElementById("content");
+
+    c.querySelectorAll("[data-open]").forEach(function (b) {
+      b.onclick = function () { state.openForm = b.dataset.open; state.editRecord = null; state.faturaCartaoId = null; render(); };
+    });
+    c.querySelectorAll("[data-open-fatura]").forEach(function (b) {
+      b.onclick = function () { state.openForm = "fatura"; state.editRecord = null; state.faturaCartaoId = b.dataset.openFatura; render(); };
+    });
+    c.querySelectorAll("[data-close]").forEach(function (b) {
+      b.onclick = function () { state.openForm = null; state.editRecord = null; state.faturaCartaoId = null; render(); };
+    });
+    c.querySelectorAll("[data-edit]").forEach(function (b) {
+      b.onclick = function () {
+        var parts = b.dataset.edit.split(":");
+        var table = parts[0], id = parts[1];
+        var rec, list;
+        if (table === "entradas_berga") list = state.entradasBerga;
+        else if (table === "saidas_berga") list = state.saidasBerga;
+        else if (table === "bancos") list = state.bancos;
+        else if (table === "faturas_cartao") list = state.faturas;
+        else if (table === "edicoes") list = state.edicoes;
+        else if (table === "brecho_garimpos") list = state.garimpos;
+        else if (table === "brecho_embalagens") list = state.embalagens;
+        else if (table === "brecho_eventos") list = state.eventosBrecho;
+        else if (table === "brecho_insumos") list = state.insumos;
+        rec = (list || []).find(function (x) { return String(x.id) === id; });
+        if (!rec) return;
+        state.editRecord = rec;
+        if (table === "entradas_berga") state.openForm = "entradaBerga";
+        else if (table === "saidas_berga") state.openForm = "saidaBerga";
+        else if (table === "bancos") state.openForm = rec.tipo === "cartao" ? "cartao" : "banco";
+        else if (table === "faturas_cartao") { state.openForm = "fatura"; state.faturaCartaoId = rec.banco_id; }
+        else if (table === "edicoes") state.openForm = "edicao";
+        else if (table === "brecho_garimpos") state.openForm = "garimpo";
+        else if (table === "brecho_embalagens") state.openForm = "embalagem";
+        else if (table === "brecho_eventos") state.openForm = "eventoBrecho";
+        else if (table === "brecho_insumos") state.openForm = "insumo";
+        render();
+      };
+    });
+    c.querySelectorAll("[data-subtab-pessoal]").forEach(function (b) {
+      b.onclick = function () { state.subtabPessoal = b.dataset.subtabPessoal; state.openForm = null; render(); };
+    });
+    c.querySelectorAll("[data-subtab-berga]").forEach(function (b) {
+      b.onclick = function () { state.subtabBerga = b.dataset.subtabBerga; state.openForm = null; render(); };
+    });
+    c.querySelectorAll("[data-edicao]").forEach(function (b) {
+      b.onclick = function () { state.edicaoAtual = b.dataset.edicao; state.openForm = null; render(); };
+    });
+    c.querySelectorAll("[data-evento-brecho]").forEach(function (b) {
+      b.onclick = function () { state.eventoBrechoAtual = b.dataset.eventoBrecho; state.openForm = null; render(); };
+    });
+    c.querySelectorAll("[data-del]").forEach(function (b) {
+      b.onclick = async function () {
+        var parts = b.dataset.del.split(":");
+        if (parts[0] === "edicoes" && !window.confirm("Excluir esta edição apaga também todas as inscrições e gastos lançados nela. Tem certeza?")) return;
+        try {
+          await sb.from(parts[0]).delete().eq("id", parts[1]);
+          if (parts[0] === "edicoes" && state.edicaoAtual === parts[1]) state.edicaoAtual = null;
+          if (parts[0] === "brecho_eventos" && state.eventoBrechoAtual === parts[1]) state.eventoBrechoAtual = null;
+          fetchTable(parts[0]);
+          if (parts[0] === "edicoes") { fetchTable("entradas_berga"); fetchTable("saidas_berga"); }
+        } catch (e) {}
+      };
+    });
+
+    c.querySelectorAll("input.money").forEach(function (inp) {
+      inp.addEventListener("input", maskMoneyInput);
+    });
+
+    var form = c.querySelector("form.entry");
+    if (form) form.onsubmit = async function (ev) {
+      ev.preventDefault();
+      var fd = new FormData(form);
+      var kind = form.dataset.form;
+      var editId = form.dataset.editId;
+      var btn = form.querySelector(".btn-save");
+      btn.disabled = true; btn.textContent = editId ? "Atualizando…" : "Salvando…";
+      try {
+        if (kind === "entradaPessoal") {
+          await sb.from("entradas_pessoal").insert([{ valor: parseMoney(fd.get("valor")), data: fd.get("data"), categoria: fd.get("categoria"), status: fd.get("status"), obs: fd.get("obs") || "" }]);
+          fetchTable("entradas_pessoal");
+        } else if (kind === "saidaPessoal") {
+          await sb.from("saidas_pessoal").insert([{ valor: parseMoney(fd.get("valor")), data: fd.get("data"), categoria: fd.get("categoria"), fixo: fd.get("fixo") === "on", status: fd.get("status"), obs: fd.get("obs") || "" }]);
+          fetchTable("saidas_pessoal");
+        } else if (kind === "edicao") {
+          var payloadEdicao = { nome: fd.get("nome"), data: fd.get("data") };
+          if (editId) { await sb.from("edicoes").update(payloadEdicao).eq("id", editId); }
+          else {
+            var res = await sb.from("edicoes").insert([payloadEdicao]).select();
+            if (res.data && res.data[0]) state.edicaoAtual = res.data[0].id;
+          }
+          fetchTable("edicoes");
+        } else if (kind === "entradaBerga") {
+          var payloadEB = { edicao_id: state.edicaoAtual, marca: fd.get("marca"), valor_total: parseMoney(fd.get("valor_total")), valor_pago: parseMoney(fd.get("valor_pago")), forma: fd.get("forma"), data: fd.get("data") };
+          if (editId) { await sb.from("entradas_berga").update(payloadEB).eq("id", editId); }
+          else { await sb.from("entradas_berga").insert([payloadEB]); }
+          fetchTable("entradas_berga");
+        } else if (kind === "saidaBerga") {
+          var payloadSB = { edicao_id: state.edicaoAtual, valor: parseMoney(fd.get("valor")), data: fd.get("data"), categoria: fd.get("categoria"), status: fd.get("status"), obs: fd.get("obs") || "" };
+          if (editId) { await sb.from("saidas_berga").update(payloadSB).eq("id", editId); }
+          else { await sb.from("saidas_berga").insert([payloadSB]); }
+          fetchTable("saidas_berga");
+        } else if (kind === "banco") {
+          var payloadBanco = { nome: fd.get("nome"), tipo: "conta", saldo: parseMoney(fd.get("saldo")) };
+          if (editId) { await sb.from("bancos").update(payloadBanco).eq("id", editId); }
+          else { await sb.from("bancos").insert([payloadBanco]); }
+          fetchTable("bancos");
+        } else if (kind === "cartao") {
+          var payloadCartao = { nome: fd.get("nome"), tipo: "cartao", limite: parseMoney(fd.get("limite")) };
+          if (editId) { await sb.from("bancos").update(payloadCartao).eq("id", editId); }
+          else { await sb.from("bancos").insert([payloadCartao]); }
+          fetchTable("bancos");
+        } else if (kind === "fatura") {
+          var payloadFatura = { banco_id: state.faturaCartaoId, mes: fd.get("mes"), valor: parseMoney(fd.get("valor")) };
+          if (editId) { await sb.from("faturas_cartao").update(payloadFatura).eq("id", editId); }
+          else { await sb.from("faturas_cartao").insert([payloadFatura]); }
+          fetchTable("faturas_cartao");
+        } else if (kind === "garimpo") {
+          var payloadGarimpo = { valor_garimpo: parseMoney(fd.get("valor_garimpo")), valor_transporte: parseMoney(fd.get("valor_transporte")), quantidade_pecas: parseInt(fd.get("quantidade_pecas"), 10) || 0, data: fd.get("data"), obs: fd.get("obs") || "" };
+          if (editId) { await sb.from("brecho_garimpos").update(payloadGarimpo).eq("id", editId); }
+          else { await sb.from("brecho_garimpos").insert([payloadGarimpo]); }
+          fetchTable("brecho_garimpos");
+        } else if (kind === "embalagem") {
+          var payloadEmbalagem = { valor: parseMoney(fd.get("valor")), quantidade: parseInt(fd.get("quantidade"), 10) || 0, data: fd.get("data"), obs: fd.get("obs") || "" };
+          if (editId) { await sb.from("brecho_embalagens").update(payloadEmbalagem).eq("id", editId); }
+          else { await sb.from("brecho_embalagens").insert([payloadEmbalagem]); }
+          fetchTable("brecho_embalagens");
+        } else if (kind === "eventoBrecho") {
+          var payloadEventoB = { nome: fd.get("nome"), data: fd.get("data"), quantidade_vendida: parseInt(fd.get("quantidade_vendida"), 10) || 0, valor_inscricao: parseMoney(fd.get("valor_inscricao")), valor_alimentacao: parseMoney(fd.get("valor_alimentacao")), valor_arrecadado: parseMoney(fd.get("valor_arrecadado")), obs: fd.get("obs") || "" };
+          if (editId) { await sb.from("brecho_eventos").update(payloadEventoB).eq("id", editId); }
+          else {
+            var resEB = await sb.from("brecho_eventos").insert([payloadEventoB]).select();
+            if (resEB.data && resEB.data[0]) state.eventoBrechoAtual = resEB.data[0].id;
+          }
+          fetchTable("brecho_eventos");
+        } else if (kind === "insumo") {
+          var payloadInsumo = { nome: fd.get("nome"), quantidade: parseInt(fd.get("quantidade"), 10) || 0, obs: fd.get("obs") || "" };
+          if (editId) { await sb.from("brecho_insumos").update(payloadInsumo).eq("id", editId); }
+          else { await sb.from("brecho_insumos").insert([payloadInsumo]); }
+          fetchTable("brecho_insumos");
+        }
+        state.openForm = null;
+        state.editRecord = null;
+        state.faturaCartaoId = null;
+        render();
+      } catch (e) {
+        btn.disabled = false; btn.textContent = editId ? "Atualizar" : "Salvar";
+      }
+    };
+  }
+
+  document.querySelectorAll("nav.tabs button").forEach(function (b) {
+    b.onclick = function () { state.tab = b.dataset.tab; state.openForm = null; render(); };
+  });
+})();
+</script>
+</body>
+</html>
