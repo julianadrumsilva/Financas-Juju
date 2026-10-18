@@ -194,6 +194,44 @@
   .hero .sub-tile .k { font-size: 10.5px; opacity: 0.8; }
   .hero .sub-tile .v { font-size: 15px; font-weight: 600; margin-top: 2px; }
 
+  /* ---------- quick-row cards (painel) ---------- */
+  .quick-row {
+    display: flex; align-items: center; gap: 12px;
+    background: var(--surface); border: 1px solid var(--border); border-left: 3px solid var(--qc, var(--border));
+    border-radius: 14px; padding: 13px 14px; margin-bottom: 10px;
+  }
+  .quick-row .ic {
+    flex-shrink: 0; width: 38px; height: 38px; border-radius: 11px;
+    background: color-mix(in srgb, var(--qc, var(--text-dim)) 16%, transparent);
+    display: flex; align-items: center; justify-content: center; font-size: 18px;
+  }
+  .quick-row .body { flex: 1; min-width: 0; }
+  .quick-row .label { font-size: 12px; color: var(--text-dim); }
+  .quick-row .value { font-size: 18px; font-weight: 700; margin-top: 1px; }
+  .quick-row .link { font-size: 12.5px; font-weight: 600; color: var(--qc, var(--text-dim)); flex-shrink: 0; white-space: nowrap; }
+
+  /* ---------- account grid (bancos) ---------- */
+  .acct-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 14px; }
+  .acct-card {
+    border-radius: 16px; padding: 14px 14px 12px; color: #fff; position: relative; overflow: hidden;
+    min-height: 92px; display: flex; flex-direction: column; justify-content: space-between; cursor: pointer;
+  }
+  .acct-card .top { display: flex; align-items: center; gap: 7px; }
+  .acct-card .dot { width: 9px; height: 9px; border-radius: 50%; background: #fff; flex-shrink: 0; }
+  .acct-card .name { font-size: 13.5px; font-weight: 600; }
+  .acct-card .sub { font-size: 10.5px; opacity: 0.8; margin-top: -3px; }
+  .acct-card .amt { font-size: 18px; font-weight: 700; margin-top: 10px; }
+  .acct-card .bar { height: 2px; background: rgba(255,255,255,0.35); border-radius: 2px; margin-top: 6px; }
+
+  /* ---------- row icon (list rows) ---------- */
+  .row-icon {
+    flex-shrink: 0; width: 34px; height: 34px; border-radius: 10px;
+    display: flex; align-items: center; justify-content: center; font-size: 16px;
+    margin-right: 10px;
+  }
+  .row-icon.in { background: rgba(111,191,123,0.14); }
+  .row-icon.out { background: var(--danger-bg); }
+
   .minibar-row { display: flex; align-items: flex-end; gap: 6px; height: 54px; padding: 4px 2px 0; margin-bottom: 4px; overflow-x: auto; }
   .minibar { flex-shrink: 0; width: 22px; display: flex; flex-direction: column; align-items: center; justify-content: flex-end; height: 100%; gap: 4px; }
   .minibar .bar { width: 10px; border-radius: 4px 4px 0 0; background: var(--border); min-height: 3px; }
@@ -469,6 +507,29 @@
     return String(s == null ? "" : s).replace(/[&<>"']/g, function (c) {
       return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c];
     });
+  }
+  var CAT_ICON_MAP = [
+    [/academia|gym|pilates|cross ?fit/i, "🏋️"],
+    [/mercado|supermercado|feira/i, "🛒"],
+    [/gasolina|combust[ií]vel|posto/i, "⛽"],
+    [/carro|uber|99|transporte|passagem|[oô]nibus/i, "🚗"],
+    [/farm[aá]cia|rem[eé]dio|sa[uú]de/i, "💊"],
+    [/psic[oó]log/i, "🧠"],
+    [/netflix|spotify|icloud|chatgpt|assinatura|streaming|plano/i, "📱"],
+    [/presente/i, "🎁"],
+    [/lanche|restaurante|ifood|comida/i, "🍔"],
+    [/sal[aá]rio|vale|freela|pagamento|recebido/i, "💰"],
+    [/aluguel|condom[ií]nio|casa/i, "🏠"],
+    [/roupa|brech[oó]|garimpo/i, "🛍️"],
+    [/cdl|inkore/i, "📋"],
+    [/cl[ií]nica|clara/i, "💉"]
+  ];
+  function catIcon(categoria, cls) {
+    var s = String(categoria || "");
+    for (var i = 0; i < CAT_ICON_MAP.length; i++) {
+      if (CAT_ICON_MAP[i][0].test(s)) return CAT_ICON_MAP[i][1];
+    }
+    return cls === "in" ? "💵" : "🧾";
   }
 
   // ---------------- money mask (BRL, digits fill from the right as cents) ----------------
@@ -788,6 +849,17 @@
       html += '<div class="stat wide"><div class="label">Transferido da Bêrga pra você (Organização)</div><div class="value num" style="color:var(--accent-pessoal)">' + fmt(org) + '</div></div>';
     }
 
+    var mesNome = mesLabel(todayISO().slice(0, 7));
+    var txCountMes = [state.entradasPessoal, state.saidasPessoal, state.entradasBerga, state.saidasBerga]
+      .reduce(function (s, arr) { return s + (arr || []).filter(function (x) { return isThisMonth(x.data); }).length; }, 0);
+    var aPagarList = aPagar();
+    var totPagPend = aPagarList.reduce(function (s, i) { return s + i.valor; }, 0);
+    var sobraFinal = disp - totPagPend;
+
+    html += '<div class="quick-row" style="--qc:var(--positive)"><div class="ic">🧾</div><div class="body"><div class="label">Gastos em ' + mesNome + '</div><div class="value num">' + fmt(sm) + '</div></div><div class="link">' + txCountMes + ' lançamento(s)</div></div>';
+    html += '<div class="quick-row" style="--qc:var(--danger)"><div class="ic">⏳</div><div class="body"><div class="label">Pra pagar em ' + mesNome + '</div><div class="value num">' + fmt(totPagPend) + '</div></div><div class="link">' + aPagarList.length + ' conta(s)</div></div>';
+    html += '<div class="quick-row" style="--qc:var(--accent-violet)"><div class="ic">📈</div><div class="body"><div class="label">Você termina ' + mesNome + ' com</div><div class="value num">' + fmt(sobraFinal) + '</div></div></div>';
+
     html += '<div class="section-title">A vencer / a receber</div>';
     html += '<div class="card">';
     if (!proximas.length) {
@@ -804,6 +876,7 @@
 
   function rowItem(cat, meta, amt, cls, delAttr, editAttr, badge) {
     var h = '<div class="row-item">';
+    h += '<div class="row-icon ' + (cls || '') + '">' + catIcon(cat, cls) + '</div>';
     h += '<div class="left"><div class="cat">' + esc(cat) + '</div>';
     if (meta) h += '<div class="meta">' + esc(meta) + '</div>';
     if (badge) h += '<span class="badge ' + badge.cls + '">' + esc(badge.text) + '</span>';
@@ -844,31 +917,38 @@
       });
       html += '</div>';
     } else {
-      // Fixos: checklist de gastos fixos — os já marcados como pagos ("OK") ficam fora da lista
+      // Fixos: checklist com TODOS os gastos fixos (pagos e pendentes), nada some da lista
       if (state.openForm === "saidaPessoal") html += formSaidaPessoal(state.editRecord);
-      var todosFixos = state.saidasPessoal.filter(function (e) { return e.fixo; });
-      var fixos = todosFixos.filter(function (e) { return e.status !== "pago"; })
-        .slice().sort(function (a, b) { return (a.data || "").localeCompare(b.data || ""); });
-      var pagos = todosFixos.length - fixos.length;
-      var totalFixos = fixos.reduce(function (s, e) { return s + Number(e.valor || 0); }, 0);
+      var todosFixos = state.saidasPessoal.filter(function (e) { return e.fixo; })
+        .slice().sort(function (a, b) {
+          var pa = a.status === "pago" ? 1 : 0, pb = b.status === "pago" ? 1 : 0;
+          if (pa !== pb) return pa - pb; // pendentes primeiro, pagos no fim
+          return (a.data || "").localeCompare(b.data || "");
+        });
+      var pendentes = todosFixos.filter(function (e) { return e.status !== "pago"; });
+      var pagos = todosFixos.length - pendentes.length;
+      var totalPendente = pendentes.reduce(function (s, e) { return s + Number(e.valor || 0); }, 0);
       var totalTodos = todosFixos.reduce(function (s, e) { return s + Number(e.valor || 0); }, 0);
       var pct = todosFixos.length ? (pagos / todosFixos.length) * 100 : 0;
 
-      html += heroCard('t', 'Gastos fixos', fmt(totalFixos), pagos + ' de ' + todosFixos.length + ' já pagos', pct,
-        [{ k: 'Pendente', v: fmt(totalFixos) }, { k: 'Total do mês', v: fmt(totalTodos) }], 'pago');
+      html += heroCard('t', 'Gastos fixos', fmt(totalPendente), pagos + ' de ' + todosFixos.length + ' já pagos', pct,
+        [{ k: 'Pendente', v: fmt(totalPendente) }, { k: 'Total do mês', v: fmt(totalTodos) }], 'pago');
 
-      html += '<div class="card" style="margin-top:12px">';
-      if (!fixos.length) {
-        html += todosFixos.length
-          ? '<div class="fixos-celebrate"><span class="emoji">🎉</span><div class="msg">Tudo pago!</div><div class="sub">Todos os gastos fixos deste ciclo já foram marcados como OK.</div></div>'
-          : '<div class="empty">Nenhum gasto fixo cadastrado ainda. Toque em "+ Nova saída" e marque "Gasto fixo mensal".</div>';
+      if (todosFixos.length && !pendentes.length) {
+        html += '<div class="fixos-celebrate" style="padding:14px 10px"><span class="emoji" style="font-size:22px">🎉</span> <span class="msg" style="font-size:13.5px">Tudo pago este mês!</span></div>';
       }
-      fixos.forEach(function (e) {
-        html += '<div class="fixo-row" data-row="saidas_pessoal:' + e.id + '">' +
-          '<button class="fixo-check" data-pay="saidas_pessoal:' + e.id + '" title="Marcar como pago">✓</button>' +
+
+      html += '<div class="card">';
+      if (!todosFixos.length) {
+        html += '<div class="empty">Nenhum gasto fixo cadastrado ainda. Toque em "+ Nova saída" e marque "Gasto fixo mensal".</div>';
+      }
+      todosFixos.forEach(function (e) {
+        var paid = e.status === "pago";
+        html += '<div class="fixo-row' + (paid ? ' paid' : '') + '" data-row="saidas_pessoal:' + e.id + '">' +
+          '<button class="fixo-check" data-pay="saidas_pessoal:' + e.id + '" title="' + (paid ? "Marcar como pendente" : "Marcar como pago") + '">✓</button>' +
           '<div class="fixo-info" data-edit="saidas_pessoal:' + e.id + '">' +
           '<div class="cat">' + esc(e.categoria) + '</div>' +
-          '<div class="meta">' + fmtDate(e.data) + (e.obs ? " · " + esc(e.obs) : "") + '</div>' +
+          '<div class="meta">' + (paid ? "pago · " : "") + fmtDate(e.data) + (e.obs ? " · " + esc(e.obs) : "") + '</div>' +
           '</div>' +
           '<div class="amt">' + fmt(e.valor) + '</div>' +
           '<button class="fixo-del" data-del="saidas_pessoal:' + e.id + '" title="Excluir">✕</button>' +
@@ -1047,12 +1127,23 @@
 
     html += '<div class="section-title">Contas</div>';
     html += (state.openForm === "banco") ? formBanco(state.editRecord) : '<button class="fab pessoal" data-open="banco">+ Nova conta</button>';
-    html += '<div class="card" style="margin-top:12px">';
-    if (!contas.length) html += '<div class="empty">Nenhuma conta cadastrada.</div>';
-    contas.forEach(function (b) {
-      html += rowItem(b.nome, "conta", fmt(b.saldo), 'in', "bancos:" + b.id, "bancos:" + b.id);
-    });
-    html += '</div>';
+    if (!contas.length) {
+      html += '<div class="card" style="margin-top:12px"><div class="empty">Nenhuma conta cadastrada.</div></div>';
+    } else {
+      var acctColors = ['var(--accent-pessoal),var(--accent-pessoal-2)', 'var(--accent-violet),var(--accent-violet-2)', 'var(--accent-brecho),var(--accent-brecho-2)', 'var(--accent-berga),var(--accent-berga-2)'];
+      html += '<div class="acct-grid">';
+      contas.forEach(function (b, i) {
+        var grad = acctColors[i % acctColors.length];
+        var saldo = Number(b.saldo || 0);
+        var pct = totalContas > 0 ? Math.max(6, Math.min(100, (saldo / totalContas) * 100)) : 0;
+        html += '<div class="acct-card" style="background:linear-gradient(135deg,' + grad + ');position:relative" data-edit="bancos:' + b.id + '">' +
+          '<button class="del-btn" data-del="bancos:' + b.id + '" style="position:absolute;top:8px;right:8px;color:#fff;opacity:0.65">✕</button>' +
+          '<div class="top"><span class="dot"></span><div><div class="name">' + esc(b.nome) + '</div><div class="sub">conta</div></div></div>' +
+          '<div><div class="amt num">' + fmt(saldo) + '</div><div class="bar" style="width:' + pct.toFixed(0) + '%"></div></div>' +
+          '</div>';
+      });
+      html += '</div>';
+    }
 
     html += '<div class="section-title">Cartões de crédito</div>';
     html += (state.openForm === "cartao") ? formCartao(state.editRecord) : '<button class="fab pessoal" data-open="cartao">+ Novo cartão</button>';
@@ -1276,7 +1367,8 @@
       b.onclick = function () { state.openForm = null; state.editRecord = null; state.faturaCartaoId = null; render(); };
     });
     c.querySelectorAll("[data-edit]").forEach(function (b) {
-      b.onclick = function () {
+      b.onclick = function (ev) {
+        ev.stopPropagation();
         var parts = b.dataset.edit.split(":");
         var table = parts[0], id = parts[1];
         var rec, list;
@@ -1319,7 +1411,8 @@
       b.onclick = function () { state.eventoBrechoAtual = b.dataset.eventoBrecho; state.openForm = null; render(); };
     });
     c.querySelectorAll("[data-del]").forEach(function (b) {
-      b.onclick = async function () {
+      b.onclick = async function (ev) {
+        ev.stopPropagation();
         var parts = b.dataset.del.split(":");
         if (parts[0] === "edicoes" && !window.confirm("Excluir esta edição apaga também todas as inscrições e gastos lançados nela. Tem certeza?")) return;
         try {
