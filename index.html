@@ -947,10 +947,11 @@
         html += '<div class="fixo-row' + (paid ? ' paid' : '') + '" data-row="saidas_pessoal:' + e.id + '">' +
           '<button class="fixo-check" data-pay="saidas_pessoal:' + e.id + '" title="' + (paid ? "Marcar como pendente" : "Marcar como pago") + '">✓</button>' +
           '<div class="fixo-info" data-edit="saidas_pessoal:' + e.id + '">' +
-          '<div class="cat">' + esc(e.categoria) + '</div>' +
-          '<div class="meta">' + (paid ? "pago · " : "") + fmtDate(e.data) + (e.obs ? " · " + esc(e.obs) : "") + '</div>' +
+          '<div class="cat">' + esc(e.categoria) + '<span class="badge ' + (paid ? "done" : "pending") + '" style="margin-left:6px;vertical-align:1px">' + (paid ? "pago" : "a pagar") + '</span></div>' +
+          '<div class="meta">' + fmtDate(e.data) + (e.obs ? " · " + esc(e.obs) : "") + '</div>' +
           '</div>' +
           '<div class="amt">' + fmt(e.valor) + '</div>' +
+          '<button class="fixo-del" data-edit="saidas_pessoal:' + e.id + '" title="Editar">✎</button>' +
           '<button class="fixo-del" data-del="saidas_pessoal:' + e.id + '" title="Excluir">✕</button>' +
           '</div>';
       });
@@ -1137,8 +1138,11 @@
         var saldo = Number(b.saldo || 0);
         var pct = totalContas > 0 ? Math.max(6, Math.min(100, (saldo / totalContas) * 100)) : 0;
         html += '<div class="acct-card" style="background:linear-gradient(135deg,' + grad + ');position:relative" data-edit="bancos:' + b.id + '">' +
-          '<button class="del-btn" data-del="bancos:' + b.id + '" style="position:absolute;top:8px;right:8px;color:#fff;opacity:0.65">✕</button>' +
-          '<div class="top"><span class="dot"></span><div><div class="name">' + esc(b.nome) + '</div><div class="sub">conta</div></div></div>' +
+          '<div style="position:absolute;top:6px;right:6px;display:flex;gap:2px">' +
+          '<button class="del-btn" data-edit="bancos:' + b.id + '" style="color:#fff;opacity:0.85" title="Editar">✎</button>' +
+          '<button class="del-btn" data-del="bancos:' + b.id + '" style="color:#fff;opacity:0.65" title="Excluir">✕</button>' +
+          '</div>' +
+          '<div class="top"><span class="dot"></span><div><div class="name">' + esc(b.nome) + '</div><div class="sub">conta · toca pra editar</div></div></div>' +
           '<div><div class="amt num">' + fmt(saldo) + '</div><div class="bar" style="width:' + pct.toFixed(0) + '%"></div></div>' +
           '</div>';
       });
@@ -1146,16 +1150,29 @@
     }
 
     html += '<div class="section-title">Cartões de crédito</div>';
+
+    if (cartoes.length) {
+      var mesAtualTop = todayISO().slice(0, 7);
+      var totalFaturaMes = 0, qtdLancada = 0;
+      cartoes.forEach(function (cRec) {
+        var fAtual = state.faturas.find(function (f) { return f.banco_id === cRec.id && f.mes === mesAtualTop; });
+        if (fAtual) { totalFaturaMes += Number(fAtual.valor || 0); qtdLancada++; }
+      });
+      html += '<div class="quick-row" style="--qc:var(--accent-violet)"><div class="ic">💳</div><div class="body"><div class="label">Faturas de ' + mesLabel(mesAtualTop) + '</div><div class="value num">' + fmt(totalFaturaMes) + '</div></div><div class="link">' + qtdLancada + ' de ' + cartoes.length + ' lançada(s)</div></div>';
+    }
+
     html += (state.openForm === "cartao") ? formCartao(state.editRecord) : '<button class="fab pessoal" data-open="cartao">+ Novo cartão</button>';
     if (!cartoes.length) html += '<div class="card"><div class="empty">Nenhum cartão cadastrado.</div></div>';
     cartoes.forEach(function (cRec) {
       var faturasC = state.faturas.filter(function (f) { return f.banco_id === cRec.id; }).slice().sort(function (a, b) { return (a.mes || "").localeCompare(b.mes || ""); });
       var mesAtual = todayISO().slice(0, 7);
-      var faturaAtual = faturasC.find(function (f) { return f.mes === mesAtual; }) || faturasC[0];
+      var faturaDoMes = faturasC.find(function (f) { return f.mes === mesAtual; });
       var limite = Number(cRec.limite || 0);
-      var pctLivre = limite > 0 && faturaAtual ? ((limite - Number(faturaAtual.valor || 0)) / limite) * 100 : null;
+      var pctLivre = limite > 0 && faturaDoMes ? ((limite - Number(faturaDoMes.valor || 0)) / limite) * 100 : null;
 
-      html += heroCard('v', cRec.nome, fmt(limite), faturaAtual ? ('fatura ' + mesLabel(faturaAtual.mes) + ': ' + fmt(faturaAtual.valor)) : 'sem fatura lançada', pctLivre, null);
+      html += heroCard('v', cRec.nome, faturaDoMes ? fmt(faturaDoMes.valor) : fmt(0),
+        (faturaDoMes ? ('fatura de ' + mesLabel(mesAtual)) : ('sem fatura de ' + mesLabel(mesAtual) + ' lançada')) + ' · limite ' + fmt(limite),
+        pctLivre, null);
 
       html += '<div class="card" style="margin-top:-4px">';
       html += '<div style="display:flex;justify-content:flex-end;gap:2px;margin-bottom:2px"><button class="del-btn" data-edit="bancos:' + cRec.id + '">✎ editar cartão</button><button class="del-btn" data-del="bancos:' + cRec.id + '">✕</button></div>';
