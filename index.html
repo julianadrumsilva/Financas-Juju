@@ -17,6 +17,7 @@
     --text: #EDEAE1;
     --text-dim: #9297a8;
     --accent-pessoal: #59BFB2;
+    --accent-pessoal-2: #2E8E82;
     --accent-pessoal-bg: rgba(89,191,178,0.12);
     --accent-berga: #FF7A33;
     --accent-berga-2: #E64A19;
@@ -42,6 +43,7 @@
       --text: #1C1E24;
       --text-dim: #6B6F7D;
       --accent-pessoal: #2C9186;
+      --accent-pessoal-2: #1E6A61;
       --accent-pessoal-bg: rgba(44,145,134,0.10);
       --accent-berga: #E0592A;
       --accent-berga-2: #B8431E;
@@ -63,7 +65,7 @@
   :root[data-theme="light"] {
     --bg: #F5F3ED; --surface: #FFFFFF; --surface-2: #ECE8DC; --border: #DAD4C4;
     --text: #1C1E24; --text-dim: #6B6F7D;
-    --accent-pessoal: #2C9186; --accent-pessoal-bg: rgba(44,145,134,0.10);
+    --accent-pessoal: #2C9186; --accent-pessoal-2: #1E6A61; --accent-pessoal-bg: rgba(44,145,134,0.10);
     --accent-berga: #E0592A; --accent-berga-2: #B8431E; --accent-berga-bg: rgba(224,89,42,0.10);
     --accent-violet: #6C5CE7; --accent-violet-2: #4B3FB8; --accent-violet-bg: rgba(108,92,231,0.10);
     --accent-brecho: #A8447A; --accent-brecho-2: #7A2D58; --accent-brecho-bg: rgba(168,68,122,0.10);
@@ -174,6 +176,7 @@
     border-radius: 20px; padding: 22px 20px; margin-bottom: 14px; position: relative; overflow: hidden;
     color: #fff; box-shadow: var(--shadow);
   }
+  .hero.t { background: linear-gradient(135deg, var(--accent-pessoal), var(--accent-pessoal-2)); }
   .hero.v { background: linear-gradient(135deg, var(--accent-violet), var(--accent-violet-2)); }
   .hero.o { background: linear-gradient(135deg, var(--accent-berga), var(--accent-berga-2)); }
   .hero.b { background: linear-gradient(135deg, var(--accent-brecho), var(--accent-brecho-2)); }
@@ -235,6 +238,37 @@
   }
   .del-btn:hover { opacity: 1; color: var(--danger); }
   .empty { color: var(--text-dim); font-size: 13.5px; padding: 18px 4px; text-align: center; }
+
+  /* ---------- fixos checklist ---------- */
+  .fixo-row {
+    display: flex; align-items: center; gap: 12px;
+    padding: 13px 4px; border-bottom: 1px solid var(--border);
+    transition: background .15s ease;
+  }
+  .fixo-row:last-child { border-bottom: none; }
+  .fixo-row:active { background: var(--surface-2); }
+  .fixo-check {
+    flex-shrink: 0; width: 28px; height: 28px; border-radius: 50%;
+    border: 2px solid var(--accent-pessoal); background: transparent;
+    cursor: pointer; display: flex; align-items: center; justify-content: center;
+    color: var(--accent-pessoal); font-size: 15px; padding: 0;
+    transition: transform .12s ease, background .12s ease;
+  }
+  .fixo-check:active { transform: scale(0.88); }
+  .fixo-check:hover { background: var(--accent-pessoal-bg); }
+  .fixo-row.paid .fixo-check { background: var(--accent-pessoal); color: #fff; }
+  .fixo-info { flex: 1; min-width: 0; cursor: pointer; }
+  .fixo-info .cat { font-size: 14.5px; font-weight: 500; }
+  .fixo-row.paid .fixo-info .cat { text-decoration: line-through; opacity: 0.55; }
+  .fixo-info .meta { font-size: 12px; color: var(--text-dim); margin-top: 2px; }
+  .fixo-row .amt { font-size: 15px; font-weight: 600; color: var(--danger); flex-shrink: 0; }
+  .fixo-row.paid .amt { color: var(--text-dim); text-decoration: line-through; opacity: 0.6; }
+  .fixo-del { flex-shrink: 0; background: none; border: none; color: var(--text-dim); opacity: 0.5; cursor: pointer; font-size: 15px; padding: 2px; }
+  .fixo-del:hover { opacity: 1; color: var(--danger); }
+  .fixos-celebrate { text-align: center; padding: 26px 10px; }
+  .fixos-celebrate .emoji { font-size: 34px; display: block; margin-bottom: 8px; }
+  .fixos-celebrate .msg { font-size: 14px; color: var(--text); font-weight: 500; }
+  .fixos-celebrate .sub { font-size: 12.5px; color: var(--text-dim); margin-top: 4px; }
 
   /* ---------- forms ---------- */
   .fab {
@@ -460,7 +494,7 @@
     return n.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
   }
 
-  function heroCard(cls, label, value, sub, pct, tiles) {
+  function heroCard(cls, label, value, sub, pct, tiles, pctLabel) {
     var gaugeHtml = "";
     if (pct !== null && pct !== undefined && !isNaN(pct)) {
       var r = 28, c = 2 * Math.PI * r;
@@ -469,7 +503,7 @@
       gaugeHtml = '<div class="gauge"><svg viewBox="0 0 68 68">' +
         '<circle cx="34" cy="34" r="' + r + '" fill="none" stroke="rgba(255,255,255,0.25)" stroke-width="7"/>' +
         '<circle cx="34" cy="34" r="' + r + '" fill="none" stroke="#fff" stroke-width="7" stroke-linecap="round" stroke-dasharray="' + dash + ' ' + c + '"/>' +
-        '</svg><div class="pct"><b>' + Math.round(p) + '%</b><span>livre</span></div></div>';
+        '</svg><div class="pct"><b>' + Math.round(p) + '%</b><span>' + esc(pctLabel || "livre") + '</span></div></div>';
     }
     var tilesHtml = "";
     if (tiles && tiles.length) {
@@ -786,6 +820,7 @@
     var html = '<div class="subtabs">';
     html += '<button data-subtab-pessoal="entradas" class="' + (state.subtabPessoal === "entradas" ? "active" : "") + '">Entradas</button>';
     html += '<button data-subtab-pessoal="saidas" class="' + (state.subtabPessoal === "saidas" ? "active" : "") + '">Saídas</button>';
+    html += '<button data-subtab-pessoal="fixos" class="' + (state.subtabPessoal === "fixos" ? "active" : "") + '">Fixos</button>';
     html += '</div>';
 
     if (state.subtabPessoal === "entradas") {
@@ -798,14 +833,46 @@
           e.status === "a_receber" ? { cls: "pending", text: "a receber" } : { cls: "done", text: "recebido" });
       });
       html += '</div>';
-    } else {
-      html += state.openForm === "saidaPessoal" ? formSaidaPessoal() : '<button class="fab pessoal" data-open="saidaPessoal">+ Nova saída</button>';
+    } else if (state.subtabPessoal === "saidas") {
+      html += state.openForm === "saidaPessoal" ? formSaidaPessoal(state.editRecord) : '<button class="fab pessoal" data-open="saidaPessoal">+ Nova saída</button>';
       html += '<div class="card" style="margin-top:12px">';
       var list2 = state.saidasPessoal;
       if (!list2.length) html += '<div class="empty">Nenhuma saída lançada ainda.</div>';
       list2.forEach(function (e) {
-        html += rowItem(e.categoria + (e.fixo ? " (fixo)" : ""), fmtDate(e.data) + (e.obs ? " · " + e.obs : ""), fmt(e.valor), 'out', "saidas_pessoal:" + e.id, null,
+        html += rowItem(e.categoria + (e.fixo ? " (fixo)" : ""), fmtDate(e.data) + (e.obs ? " · " + e.obs : ""), fmt(e.valor), 'out', "saidas_pessoal:" + e.id, "saidas_pessoal:" + e.id,
           e.status === "a_pagar" ? { cls: "pending", text: "a pagar" } : { cls: "done", text: "pago" });
+      });
+      html += '</div>';
+    } else {
+      // Fixos: checklist de gastos fixos — os já marcados como pagos ("OK") ficam fora da lista
+      if (state.openForm === "saidaPessoal") html += formSaidaPessoal(state.editRecord);
+      var todosFixos = state.saidasPessoal.filter(function (e) { return e.fixo; });
+      var fixos = todosFixos.filter(function (e) { return e.status !== "pago"; })
+        .slice().sort(function (a, b) { return (a.data || "").localeCompare(b.data || ""); });
+      var pagos = todosFixos.length - fixos.length;
+      var totalFixos = fixos.reduce(function (s, e) { return s + Number(e.valor || 0); }, 0);
+      var totalTodos = todosFixos.reduce(function (s, e) { return s + Number(e.valor || 0); }, 0);
+      var pct = todosFixos.length ? (pagos / todosFixos.length) * 100 : 0;
+
+      html += heroCard('t', 'Gastos fixos', fmt(totalFixos), pagos + ' de ' + todosFixos.length + ' já pagos', pct,
+        [{ k: 'Pendente', v: fmt(totalFixos) }, { k: 'Total do mês', v: fmt(totalTodos) }], 'pago');
+
+      html += '<div class="card" style="margin-top:12px">';
+      if (!fixos.length) {
+        html += todosFixos.length
+          ? '<div class="fixos-celebrate"><span class="emoji">🎉</span><div class="msg">Tudo pago!</div><div class="sub">Todos os gastos fixos deste ciclo já foram marcados como OK.</div></div>'
+          : '<div class="empty">Nenhum gasto fixo cadastrado ainda. Toque em "+ Nova saída" e marque "Gasto fixo mensal".</div>';
+      }
+      fixos.forEach(function (e) {
+        html += '<div class="fixo-row" data-row="saidas_pessoal:' + e.id + '">' +
+          '<button class="fixo-check" data-pay="saidas_pessoal:' + e.id + '" title="Marcar como pago">✓</button>' +
+          '<div class="fixo-info" data-edit="saidas_pessoal:' + e.id + '">' +
+          '<div class="cat">' + esc(e.categoria) + '</div>' +
+          '<div class="meta">' + fmtDate(e.data) + (e.obs ? " · " + esc(e.obs) : "") + '</div>' +
+          '</div>' +
+          '<div class="amt">' + fmt(e.valor) + '</div>' +
+          '<button class="fixo-del" data-del="saidas_pessoal:' + e.id + '" title="Excluir">✕</button>' +
+          '</div>';
       });
       html += '</div>';
     }
@@ -823,16 +890,16 @@
       '<div class="actions"><button type="button" class="btn-cancel" data-close>Cancelar</button><button type="submit" class="btn-save">Salvar</button></div>' +
       '</form>';
   }
-  function formSaidaPessoal() {
-    var opts = CAT_SAIDA_PESSOAL.map(function (c) { return '<option value="' + esc(c) + '">' + esc(c) + '</option>'; }).join("");
-    return '<form class="entry" data-form="saidaPessoal">' +
-      '<div class="fr"><div><label>Valor (R$)</label><input required type="text" inputmode="decimal" class="money" placeholder="0,00" name="valor"></div>' +
-      '<div><label>Data</label><input required type="date" name="data" value="' + todayISO() + '"></div></div>' +
+  function formSaidaPessoal(rec) {
+    var opts = CAT_SAIDA_PESSOAL.map(function (c) { return '<option value="' + esc(c) + '"' + (rec && rec.categoria === c ? " selected" : "") + '>' + esc(c) + '</option>'; }).join("");
+    return '<form class="entry" data-form="saidaPessoal"' + (rec ? ' data-edit-id="' + rec.id + '"' : '') + '>' +
+      '<div class="fr"><div><label>Valor (R$)</label><input required type="text" inputmode="decimal" class="money" placeholder="0,00" name="valor" value="' + (rec ? toMoneyDisplay(rec.valor) : "") + '"></div>' +
+      '<div><label>Data</label><input required type="date" name="data" value="' + esc(rec ? rec.data : todayISO()) + '"></div></div>' +
       '<div><label>Categoria</label><select name="categoria">' + opts + '</select></div>' +
-      '<label class="chk"><input type="checkbox" name="fixo"> Gasto fixo mensal</label>' +
-      '<div><label>Status</label><select name="status"><option value="pago">Pago</option><option value="a_pagar">A pagar</option></select></div>' +
-      '<div><label>Observação</label><input type="text" name="obs" placeholder="opcional"></div>' +
-      '<div class="actions"><button type="button" class="btn-cancel" data-close>Cancelar</button><button type="submit" class="btn-save">Salvar</button></div>' +
+      '<label class="chk"><input type="checkbox" name="fixo"' + (rec && rec.fixo ? " checked" : "") + '> Gasto fixo mensal</label>' +
+      '<div><label>Status</label><select name="status"><option value="pago"' + (rec && rec.status === "pago" ? " selected" : "") + '>Pago</option><option value="a_pagar"' + (rec && rec.status === "a_pagar" ? " selected" : "") + '>A pagar</option></select></div>' +
+      '<div><label>Observação</label><input type="text" name="obs" placeholder="opcional" value="' + esc(rec ? rec.obs : "") + '"></div>' +
+      '<div class="actions"><button type="button" class="btn-cancel" data-close>Cancelar</button><button type="submit" class="btn-save">' + (rec ? "Atualizar" : "Salvar") + '</button></div>' +
       '</form>';
   }
 
@@ -1215,6 +1282,7 @@
         var rec, list;
         if (table === "entradas_berga") list = state.entradasBerga;
         else if (table === "saidas_berga") list = state.saidasBerga;
+        else if (table === "saidas_pessoal") list = state.saidasPessoal;
         else if (table === "bancos") list = state.bancos;
         else if (table === "faturas_cartao") list = state.faturas;
         else if (table === "edicoes") list = state.edicoes;
@@ -1227,6 +1295,7 @@
         state.editRecord = rec;
         if (table === "entradas_berga") state.openForm = "entradaBerga";
         else if (table === "saidas_berga") state.openForm = "saidaBerga";
+        else if (table === "saidas_pessoal") state.openForm = "saidaPessoal";
         else if (table === "bancos") state.openForm = rec.tipo === "cartao" ? "cartao" : "banco";
         else if (table === "faturas_cartao") { state.openForm = "fatura"; state.faturaCartaoId = rec.banco_id; }
         else if (table === "edicoes") state.openForm = "edicao";
@@ -1263,6 +1332,23 @@
       };
     });
 
+    c.querySelectorAll("[data-pay]").forEach(function (b) {
+      b.onclick = async function (ev) {
+        ev.stopPropagation();
+        var parts = b.dataset.pay.split(":");
+        var row = b.closest(".fixo-row");
+        if (row) row.classList.add("paid");
+        b.disabled = true;
+        try {
+          await sb.from(parts[0]).update({ status: "pago" }).eq("id", parts[1]);
+          fetchTable(parts[0]);
+        } catch (e) {
+          if (row) row.classList.remove("paid");
+          b.disabled = false;
+        }
+      };
+    });
+
     c.querySelectorAll("input.money").forEach(function (inp) {
       inp.addEventListener("input", maskMoneyInput);
     });
@@ -1280,7 +1366,9 @@
           await sb.from("entradas_pessoal").insert([{ valor: parseMoney(fd.get("valor")), data: fd.get("data"), categoria: fd.get("categoria"), status: fd.get("status"), obs: fd.get("obs") || "" }]);
           fetchTable("entradas_pessoal");
         } else if (kind === "saidaPessoal") {
-          await sb.from("saidas_pessoal").insert([{ valor: parseMoney(fd.get("valor")), data: fd.get("data"), categoria: fd.get("categoria"), fixo: fd.get("fixo") === "on", status: fd.get("status"), obs: fd.get("obs") || "" }]);
+          var payloadSP = { valor: parseMoney(fd.get("valor")), data: fd.get("data"), categoria: fd.get("categoria"), fixo: fd.get("fixo") === "on", status: fd.get("status"), obs: fd.get("obs") || "" };
+          if (editId) { await sb.from("saidas_pessoal").update(payloadSP).eq("id", editId); }
+          else { await sb.from("saidas_pessoal").insert([payloadSP]); }
           fetchTable("saidas_pessoal");
         } else if (kind === "edicao") {
           var payloadEdicao = { nome: fd.get("nome"), data: fd.get("data") };
