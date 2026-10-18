@@ -732,25 +732,29 @@ render(); setSave("Carregando…");
 save=async function(){
   saveT=null; const body=JSON.stringify(S);
   guardarCache(true);
-  if(!navigator.onLine){ setSave("Sem internet · salvo no celular"); return; }
+  // sempre tenta salvar no servidor, mesmo que o navegador ache que tá offline (isso às vezes erra no Safari/iPadOS)
   let error=null; try{ ({error}=await sb.from("fin_plano").upsert({id:"casal",estado:S,atualizado_em:new Date().toISOString()},{onConflict:"id"})); }catch(e){ error=e; }
   if(error){ console.error(error);
-    if(!navigator.onLine||String(error.message||error).match(/fetch|network|Load failed/i)){ setSave("Sem internet · salvo no celular"); return; }
+    if(String(error.message||error).match(/fetch|network|load failed|timeout/i)){ setSave("Sem internet · salvo no celular"); return; }
     setSave("Entra de novo pra sincronizar"); window.sbMostrarLogin&&window.sbMostrarLogin(); return;
   }
   lastSaved=body; try{localStorage.removeItem("fin2-pendente")}catch(e){} setSave("Salvo");
 };
 let conectado=false, USER=null;
 async function sincronizar(){
-  if(conectado||!navigator.onLine)return;
+  // não confia cegamente em navigator.onLine (no Safari/iPadOS às vezes fica errado mesmo com internet de verdade) —
+  // sempre tenta buscar do servidor e só trata como offline se a tentativa de fato falhar.
+  if(conectado)return;
   if(USER.offline){ let ses=null; try{({data:{session:ses}}=await sb.auth.getSession())}catch(e){}
     if(ses){USER=ses.user;SB_USER=ses.user} else { if(!ready)usarCache(); setSave("Entra de novo pra sincronizar"); window.sbMostrarLogin&&window.sbMostrarLogin(); return; } }
   let data,error; try{ ({data,error}=await sb.from("fin_plano").select("estado").eq("id","casal").maybeSingle()); }catch(e){ error=e; }
   if(error){
     console.error(error);
     if(!ready)usarCache();
-    // se a internet tá ok mas mesmo assim deu erro, mostra o motivo de verdade em vez de "sem internet" (ajuda a achar o problema)
-    if(navigator.onLine){ setSave("Erro ao buscar dados: "+(error.message||error.code||"desconhecido")); toast("Não consegui buscar os dados do servidor."); }
+    const msg=String((error&&(error.message||error.code))||error||"");
+    const pareceSemRede=/fetch|network|load failed|offline|timeout/i.test(msg);
+    if(pareceSemRede){ setSave("Sem internet · usando o que tá no celular"); }
+    else { setSave("Erro ao buscar dados: "+(msg||"desconhecido")); toast("Não consegui buscar os dados do servidor."); }
     return;
   }
   const pend=(()=>{try{return localStorage.getItem("fin2-pendente")==="1"}catch(e){return false}})();
@@ -772,8 +776,8 @@ function usarCache(){
   render(); setSave(c?"Sem internet · usando o que tá no celular":"Sem internet");
 }
 window.aoRelogar=u=>{USER=u;sincronizar()};
-setInterval(()=>{if(USER&&!conectado&&navigator.onLine&&!USER.offline)sincronizar()},30000);
-onSbReady(async user=>{ USER=user; if(!navigator.onLine){usarCache();return;} await sincronizar(); });
+setInterval(()=>{if(USER&&!conectado&&!USER.offline)sincronizar()},30000);
+onSbReady(async user=>{ USER=user; await sincronizar(); });
 addEventListener("online",async()=>{ if(!USER)return; setSave("Sincronizando…");
   if(conectado){ let p=false; try{p=localStorage.getItem("fin2-pendente")==="1"}catch(e){} if(p)await save(); else setSave("Salvo"); } else await sincronizar(); });
 addEventListener("offline",()=>setSave("Sem internet · salvo no celular"));
