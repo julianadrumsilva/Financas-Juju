@@ -211,6 +211,14 @@ function onSbReady(fn){ if(SB_USER) fn(SB_USER); else sbReadyCallbacks.push(fn);
   const form = document.getElementById('sbLoginForm');
   const err = document.getElementById('sbLoginErr');
   const em = document.getElementById('sbEmail'), pw = document.getElementById('sbSenha'), lemb = document.getElementById('sbLembrar');
+  if(!sb){
+    // Supabase não carregou (sem internet ou CDN bloqueado na hora). Mostra aviso em vez de travar a tela em branco.
+    box.style.display = 'flex';
+    err.textContent = 'Não consegui carregar o servidor. Verifica a internet e recarrega a página.';
+    form.querySelectorAll('input,button').forEach(elz=>elz.disabled=true);
+    window.sbMostrarLogin = ()=>{ box.style.display='flex'; };
+    return;
+  }
   try{ const salvo = localStorage.getItem('fin2-email'); if(salvo){ em.value = salvo; lemb.checked = true; } else if(localStorage.getItem('fin2-lembrar')==='0'){ lemb.checked = false; } }catch(e){}
   document.getElementById('sbOlho').addEventListener('click', ()=>{
     const ver = pw.type === 'password'; pw.type = ver ? 'text' : 'password';
