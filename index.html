@@ -746,7 +746,13 @@ async function sincronizar(){
   if(USER.offline){ let ses=null; try{({data:{session:ses}}=await sb.auth.getSession())}catch(e){}
     if(ses){USER=ses.user;SB_USER=ses.user} else { if(!ready)usarCache(); setSave("Entra de novo pra sincronizar"); window.sbMostrarLogin&&window.sbMostrarLogin(); return; } }
   let data,error; try{ ({data,error}=await sb.from("fin_plano").select("estado").eq("id","casal").maybeSingle()); }catch(e){ error=e; }
-  if(error){ console.error(error); if(!ready)usarCache(); return; }
+  if(error){
+    console.error(error);
+    if(!ready)usarCache();
+    // se a internet tá ok mas mesmo assim deu erro, mostra o motivo de verdade em vez de "sem internet" (ajuda a achar o problema)
+    if(navigator.onLine){ setSave("Erro ao buscar dados: "+(error.message||error.code||"desconhecido")); toast("Não consegui buscar os dados do servidor."); }
+    return;
+  }
   const pend=(()=>{try{return localStorage.getItem("fin2-pendente")==="1"}catch(e){return false}})();
   const c=lerCache();
   if(pend&&c&&c.S){ merge(c.S); } else if(!(ready&&saveT)){ merge(data&&data.estado); }
