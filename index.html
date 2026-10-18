@@ -264,12 +264,19 @@
   .row-item .amt { font-size: 14.5px; font-weight: 600; }
   .row-item .amt.out { color: var(--danger); }
   .row-item .amt.in { color: var(--positive); }
+  .row-item.paid .cat { text-decoration: line-through; opacity: 0.55; }
+  .row-item.paid .amt { text-decoration: line-through; opacity: 0.6; }
+  .row-item .fixo-check { margin-right: 10px; }
   .badge {
     display: inline-block; font-size: 10.5px; padding: 2px 7px; border-radius: 20px;
     margin-top: 4px; font-weight: 500;
   }
   .badge.pending { background: var(--danger-bg); color: var(--danger); }
   .badge.done { background: rgba(111,191,123,0.12); color: var(--positive); }
+  .fixo-row .badge.done {
+    background: transparent; border: 1.5px dashed var(--positive); font-family: 'Fraunces', serif;
+    font-weight: 600; transform: rotate(-3deg); display: inline-block;
+  }
   .del-btn {
     background: none; border: none; color: var(--text-dim); cursor: pointer; padding: 4px;
     font-size: 16px; line-height: 1; opacity: 0.6;
@@ -411,19 +418,15 @@
     </button>
     <button data-tab="pessoal">
       <svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="3.4"/><path d="M5 20c0-3.9 3.1-6.5 7-6.5s7 2.6 7 6.5"/></svg>
-      Pessoal
+      Gastos
     </button>
     <button data-tab="berga">
       <svg viewBox="0 0 24 24"><path d="M3 10l9-6 9 6-9 6-9-6z"/><path d="M7 12.5V17c0 1.4 2.2 2.5 5 2.5s5-1.1 5-2.5v-4.5"/></svg>
       Bêrga
     </button>
-    <button data-tab="contas">
-      <svg viewBox="0 0 24 24"><rect x="3.5" y="5" width="17" height="14" rx="2"/><path d="M3.5 9.5h17"/><path d="M7 13.5h4"/></svg>
-      Contas
-    </button>
     <button data-tab="bancos">
       <svg viewBox="0 0 24 24"><rect x="3" y="6" width="18" height="13" rx="2"/><path d="M3 10h18"/><circle cx="7.5" cy="14.5" r="1"/><path d="M3 6l9-3 9 3"/></svg>
-      Bancos
+      Cartões
     </button>
     <button data-tab="brecho">
       <svg viewBox="0 0 24 24"><path d="M6 8h12l1.5 12.5a1.5 1.5 0 01-1.5 1.5H6a1.5 1.5 0 01-1.5-1.5L6 8z"/><path d="M9 8V6a3 3 0 016 0v2"/></svg>
@@ -449,6 +452,7 @@
     edicoes: [],
     tab: "painel",
     subtabPessoal: "entradas",
+    filtroSaida: "todos",
     subtabBerga: "entradas",
     edicaoAtual: null,
     openForm: null,
@@ -524,6 +528,20 @@
     [/cdl|inkore/i, "📋"],
     [/cl[ií]nica|clara/i, "💉"]
   ];
+  function listByTable(table) {
+    if (table === "entradas_pessoal") return state.entradasPessoal;
+    if (table === "entradas_berga") return state.entradasBerga;
+    if (table === "saidas_berga") return state.saidasBerga;
+    if (table === "saidas_pessoal") return state.saidasPessoal;
+    if (table === "bancos") return state.bancos;
+    if (table === "faturas_cartao") return state.faturas;
+    if (table === "edicoes") return state.edicoes;
+    if (table === "brecho_garimpos") return state.garimpos;
+    if (table === "brecho_embalagens") return state.embalagens;
+    if (table === "brecho_eventos") return state.eventosBrecho;
+    if (table === "brecho_insumos") return state.insumos;
+    return [];
+  }
   function catIcon(categoria, cls) {
     var s = String(categoria || "");
     for (var i = 0; i < CAT_ICON_MAP.length; i++) {
@@ -789,13 +807,13 @@
   function aReceber() {
     var list = [];
     state.entradasPessoal.filter(function (e) { return e.status === "a_receber"; }).forEach(function (e) {
-      list.push({ desc: e.categoria + (e.obs ? " — " + e.obs : ""), valor: Number(e.valor || 0), data: e.data, origem: "pessoal" });
+      list.push({ desc: e.categoria + (e.obs ? " — " + e.obs : ""), valor: Number(e.valor || 0), data: e.data, origem: "pessoal", table: "entradas_pessoal", id: e.id });
     });
     state.entradasBerga.forEach(function (e) {
       var pend = Number(e.valor_total || 0) - Number(e.valor_pago || 0);
       if (pend > 0.004) {
         var ed = state.edicoes.find(function (x) { return x.id === e.edicao_id; });
-        list.push({ desc: e.marca + " — " + (ed ? ed.nome : "edição"), valor: pend, data: e.data, origem: "berga" });
+        list.push({ desc: e.marca + " — " + (ed ? ed.nome : "edição"), valor: pend, data: e.data, origem: "berga", table: "entradas_berga", id: e.id });
       }
     });
     list.sort(function (a, b) { return (a.data || "").localeCompare(b.data || ""); });
@@ -804,11 +822,11 @@
   function aPagar() {
     var list = [];
     state.saidasPessoal.filter(function (e) { return e.status === "a_pagar"; }).forEach(function (e) {
-      list.push({ desc: e.categoria + (e.obs ? " — " + e.obs : ""), valor: Number(e.valor || 0), data: e.data, origem: "pessoal" });
+      list.push({ desc: e.categoria + (e.obs ? " — " + e.obs : ""), valor: Number(e.valor || 0), data: e.data, origem: "pessoal", table: "saidas_pessoal", id: e.id });
     });
     state.saidasBerga.filter(function (e) { return e.status === "a_pagar"; }).forEach(function (e) {
       var ed = state.edicoes.find(function (x) { return x.id === e.edicao_id; });
-      list.push({ desc: e.categoria + " — " + (ed ? ed.nome : "edição"), valor: Number(e.valor || 0), data: e.data, origem: "berga" });
+      list.push({ desc: e.categoria + " — " + (ed ? ed.nome : "edição"), valor: Number(e.valor || 0), data: e.data, origem: "berga", table: "saidas_berga", id: e.id });
     });
     list.sort(function (a, b) { return (a.data || "").localeCompare(b.data || ""); });
     return list;
@@ -827,7 +845,6 @@
     if (state.tab === "painel") el.innerHTML = errBanner + renderPainel();
     else if (state.tab === "pessoal") el.innerHTML = renderPessoal();
     else if (state.tab === "berga") el.innerHTML = renderBerga();
-    else if (state.tab === "contas") el.innerHTML = renderContas();
     else if (state.tab === "bancos") el.innerHTML = renderBancos();
     else if (state.tab === "brecho") el.innerHTML = renderBrecho();
     attachHandlers();
@@ -835,8 +852,6 @@
 
   function renderPainel() {
     var disp = saldoPessoal() + saldoBerga();
-    var pend = aReceber().length + aPagar().length;
-    var proximas = aPagar().slice(0, 4);
     var em = entradasMes(), sm = saidasMes();
     var pctLivre = em > 0 ? ((em - sm) / em) * 100 : 100;
     var html = '';
@@ -860,23 +875,33 @@
     html += '<div class="quick-row" style="--qc:var(--danger)"><div class="ic">⏳</div><div class="body"><div class="label">Pra pagar em ' + mesNome + '</div><div class="value num">' + fmt(totPagPend) + '</div></div><div class="link">' + aPagarList.length + ' conta(s)</div></div>';
     html += '<div class="quick-row" style="--qc:var(--accent-violet)"><div class="ic">📈</div><div class="body"><div class="label">Você termina ' + mesNome + ' com</div><div class="value num">' + fmt(sobraFinal) + '</div></div></div>';
 
-    html += '<div class="section-title">A vencer / a receber</div>';
+    html += '<div class="section-title">A pagar</div>';
     html += '<div class="card">';
-    if (!proximas.length) {
-      html += '<div class="empty">Nada pendente por aqui. Bom sinal.</div>';
+    if (!aPagarList.length) {
+      html += '<div class="empty">Nada a pagar por aqui. Bom sinal.</div>';
     } else {
-      proximas.forEach(function (i) {
-        html += rowItem(i.desc, fmtDate(i.data), fmt(i.valor), 'out', null);
+      aPagarList.forEach(function (i) {
+        html += rowItem(i.desc, fmtDate(i.data) + (i.origem === "berga" ? " · Bêrga" : " · pessoal"), fmt(i.valor), 'out', i.table + ":" + i.id, null, null, i.table + ":" + i.id);
       });
-      if (pend > proximas.length) html += '<div class="empty" style="padding-top:8px">e mais ' + (pend - proximas.length) + ' pendência(s) — veja em Contas</div>';
     }
     html += '</div>';
+
+    var recList = aReceber();
+    if (recList.length) {
+      html += '<div class="section-title">A receber</div>';
+      html += '<div class="card">';
+      recList.forEach(function (i) {
+        html += rowItem(i.desc, fmtDate(i.data) + (i.origem === "berga" ? " · Bêrga" : " · pessoal"), fmt(i.valor), 'in', null, null, null, (i.table === "entradas_pessoal" ? i.table + ":" + i.id : null));
+      });
+      html += '</div>';
+    }
     return html;
   }
 
-  function rowItem(cat, meta, amt, cls, delAttr, editAttr, badge) {
-    var h = '<div class="row-item">';
-    h += '<div class="row-icon ' + (cls || '') + '">' + catIcon(cat, cls) + '</div>';
+  function rowItem(cat, meta, amt, cls, delAttr, editAttr, badge, payAttr) {
+    var h = '<div class="row-item' + (payAttr && badge && badge.cls === 'done' ? ' paid' : '') + '">';
+    if (payAttr) h += '<button class="fixo-check" data-pay="' + payAttr + '" title="Marcar como ' + (badge && badge.cls === 'done' ? 'pendente' : 'feito') + '">✓</button>';
+    else h += '<div class="row-icon ' + (cls || '') + '">' + catIcon(cat, cls) + '</div>';
     h += '<div class="left"><div class="cat">' + esc(cat) + '</div>';
     if (meta) h += '<div class="meta">' + esc(meta) + '</div>';
     if (badge) h += '<span class="badge ' + badge.cls + '">' + esc(badge.text) + '</span>';
@@ -897,23 +922,46 @@
     html += '</div>';
 
     if (state.subtabPessoal === "entradas") {
-      html += state.openForm === "entradaPessoal" ? formEntradaPessoal() : '<button class="fab pessoal" data-open="entradaPessoal">+ Nova entrada</button>';
+      html += state.openForm === "entradaPessoal" ? formEntradaPessoal(state.editRecord) : '<button class="fab pessoal" data-open="entradaPessoal">+ Nova entrada</button>';
       html += '<div class="card" style="margin-top:12px">';
       var list = state.entradasPessoal;
       if (!list.length) html += '<div class="empty">Nenhuma entrada lançada ainda.</div>';
       list.forEach(function (e) {
-        html += rowItem(e.categoria, fmtDate(e.data) + (e.obs ? " · " + e.obs : ""), fmt(e.valor), 'in', "entradas_pessoal:" + e.id, null,
-          e.status === "a_receber" ? { cls: "pending", text: "a receber" } : { cls: "done", text: "recebido" });
+        html += rowItem(e.categoria, fmtDate(e.data) + (e.obs ? " · " + e.obs : ""), fmt(e.valor), 'in', "entradas_pessoal:" + e.id, "entradas_pessoal:" + e.id,
+          e.status === "a_receber" ? { cls: "pending", text: "a receber" } : { cls: "done", text: "recebido" }, "entradas_pessoal:" + e.id);
       });
       html += '</div>';
     } else if (state.subtabPessoal === "saidas") {
       html += state.openForm === "saidaPessoal" ? formSaidaPessoal(state.editRecord) : '<button class="fab pessoal" data-open="saidaPessoal">+ Nova saída</button>';
-      html += '<div class="card" style="margin-top:12px">';
-      var list2 = state.saidasPessoal;
-      if (!list2.length) html += '<div class="empty">Nenhuma saída lançada ainda.</div>';
+
+      var hoje = todayISO();
+      var chips = [
+        { k: 'todos', label: 'Todos' },
+        { k: 'fixos', label: 'Fixos' },
+        { k: 'futuros', label: 'Futuros' },
+        { k: 'pago', label: 'Pagos' }
+      ];
+      html += '<div class="subtabs" style="margin-top:12px">' + chips.map(function (c) {
+        return '<button data-chip-saida="' + c.k + '" class="' + (state.filtroSaida === c.k ? "active" : "") + '">' + c.label + '</button>';
+      }).join('') + '</div>';
+
+      var list2 = state.saidasPessoal.filter(function (e) {
+        if (state.filtroSaida === 'fixos') return e.fixo;
+        if (state.filtroSaida === 'futuros') return e.status === 'a_pagar' && e.data && e.data > hoje;
+        if (state.filtroSaida === 'pago') return e.status === 'pago';
+        return true;
+      }).slice().sort(function (a, b) { return (a.data || "").localeCompare(b.data || ""); });
+      var totalList2 = list2.reduce(function (s, e) { return s + Number(e.valor || 0); }, 0);
+      html += '<div class="card" style="margin-bottom:10px;padding:10px 14px"><div class="empty" style="padding:0;text-align:left;color:var(--text)">Total: <b>' + fmt(totalList2) + '</b> em ' + list2.length + ' item(ns)</div></div>';
+
+      html += '<div class="card">';
+      if (!list2.length) html += '<div class="empty">Nenhuma saída aqui.</div>';
       list2.forEach(function (e) {
-        html += rowItem(e.categoria + (e.fixo ? " (fixo)" : ""), fmtDate(e.data) + (e.obs ? " · " + e.obs : ""), fmt(e.valor), 'out', "saidas_pessoal:" + e.id, "saidas_pessoal:" + e.id,
-          e.status === "a_pagar" ? { cls: "pending", text: "a pagar" } : { cls: "done", text: "pago" });
+        var vencida = e.status === "a_pagar" && e.data && e.data < hoje;
+        var futura = e.status === "a_pagar" && e.data && e.data > hoje;
+        var metaTxt = fmtDate(e.data) + (e.fixo ? " · fixo" : "") + (futura ? " · agendado" : "") + (vencida ? " · vencido" : "") + (e.obs ? " · " + e.obs : "");
+        html += rowItem(e.categoria, metaTxt, fmt(e.valor), 'out', "saidas_pessoal:" + e.id, "saidas_pessoal:" + e.id,
+          e.status === "a_pagar" ? { cls: "pending", text: "a pagar" } : { cls: "done", text: "pago" }, "saidas_pessoal:" + e.id);
       });
       html += '</div>';
     } else {
@@ -960,15 +1008,15 @@
     return html;
   }
 
-  function formEntradaPessoal() {
-    var opts = CAT_ENTRADA_PESSOAL.map(function (c) { return '<option value="' + esc(c) + '">' + esc(c) + '</option>'; }).join("");
-    return '<form class="entry" data-form="entradaPessoal">' +
-      '<div class="fr"><div><label>Valor (R$)</label><input required type="text" inputmode="decimal" class="money" placeholder="0,00" name="valor"></div>' +
-      '<div><label>Data</label><input required type="date" name="data" value="' + todayISO() + '"></div></div>' +
+  function formEntradaPessoal(rec) {
+    var opts = CAT_ENTRADA_PESSOAL.map(function (c) { return '<option value="' + esc(c) + '"' + (rec && rec.categoria === c ? " selected" : "") + '>' + esc(c) + '</option>'; }).join("");
+    return '<form class="entry" data-form="entradaPessoal"' + (rec ? ' data-edit-id="' + rec.id + '"' : '') + '>' +
+      '<div class="fr"><div><label>Valor (R$)</label><input required type="text" inputmode="decimal" class="money" placeholder="0,00" name="valor" value="' + (rec ? toMoneyDisplay(rec.valor) : "") + '"></div>' +
+      '<div><label>Data</label><input required type="date" name="data" value="' + esc(rec ? rec.data : todayISO()) + '"></div></div>' +
       '<div><label>Categoria</label><select name="categoria">' + opts + '</select></div>' +
-      '<div><label>Status</label><select name="status"><option value="recebido">Recebido</option><option value="a_receber">A receber</option></select></div>' +
-      '<div><label>Observação</label><input type="text" name="obs" placeholder="opcional"></div>' +
-      '<div class="actions"><button type="button" class="btn-cancel" data-close>Cancelar</button><button type="submit" class="btn-save">Salvar</button></div>' +
+      '<div><label>Status</label><select name="status"><option value="recebido"' + (rec && rec.status === "recebido" ? " selected" : "") + '>Recebido</option><option value="a_receber"' + (rec && rec.status === "a_receber" ? " selected" : "") + '>A receber</option></select></div>' +
+      '<div><label>Observação</label><input type="text" name="obs" placeholder="opcional" value="' + esc(rec ? rec.obs : "") + '"></div>' +
+      '<div class="actions"><button type="button" class="btn-cancel" data-close>Cancelar</button><button type="submit" class="btn-save">' + (rec ? "Atualizar" : "Salvar") + '</button></div>' +
       '</form>';
   }
   function formSaidaPessoal(rec) {
@@ -1388,21 +1436,11 @@
         ev.stopPropagation();
         var parts = b.dataset.edit.split(":");
         var table = parts[0], id = parts[1];
-        var rec, list;
-        if (table === "entradas_berga") list = state.entradasBerga;
-        else if (table === "saidas_berga") list = state.saidasBerga;
-        else if (table === "saidas_pessoal") list = state.saidasPessoal;
-        else if (table === "bancos") list = state.bancos;
-        else if (table === "faturas_cartao") list = state.faturas;
-        else if (table === "edicoes") list = state.edicoes;
-        else if (table === "brecho_garimpos") list = state.garimpos;
-        else if (table === "brecho_embalagens") list = state.embalagens;
-        else if (table === "brecho_eventos") list = state.eventosBrecho;
-        else if (table === "brecho_insumos") list = state.insumos;
-        rec = (list || []).find(function (x) { return String(x.id) === id; });
+        var rec = listByTable(table).find(function (x) { return String(x.id) === id; });
         if (!rec) return;
         state.editRecord = rec;
-        if (table === "entradas_berga") state.openForm = "entradaBerga";
+        if (table === "entradas_pessoal") state.openForm = "entradaPessoal";
+        else if (table === "entradas_berga") state.openForm = "entradaBerga";
         else if (table === "saidas_berga") state.openForm = "saidaBerga";
         else if (table === "saidas_pessoal") state.openForm = "saidaPessoal";
         else if (table === "bancos") state.openForm = rec.tipo === "cartao" ? "cartao" : "banco";
@@ -1417,6 +1455,9 @@
     });
     c.querySelectorAll("[data-subtab-pessoal]").forEach(function (b) {
       b.onclick = function () { state.subtabPessoal = b.dataset.subtabPessoal; state.openForm = null; render(); };
+    });
+    c.querySelectorAll("[data-chip-saida]").forEach(function (b) {
+      b.onclick = function () { state.filtroSaida = b.dataset.chipSaida; render(); };
     });
     c.querySelectorAll("[data-subtab-berga]").forEach(function (b) {
       b.onclick = function () { state.subtabBerga = b.dataset.subtabBerga; state.openForm = null; render(); };
@@ -1446,14 +1487,19 @@
       b.onclick = async function (ev) {
         ev.stopPropagation();
         var parts = b.dataset.pay.split(":");
-        var row = b.closest(".fixo-row");
-        if (row) row.classList.add("paid");
+        var table = parts[0], id = parts[1];
+        var isEntrada = table.indexOf("entradas") === 0;
+        var paidVal = isEntrada ? "recebido" : "pago";
+        var pendVal = isEntrada ? "a_receber" : "a_pagar";
+        var rec = listByTable(table).find(function (x) { return String(x.id) === id; });
+        var nextVal = (rec && rec.status === paidVal) ? pendVal : paidVal;
+        var row = b.closest(".fixo-row, .row-item");
+        if (row) row.classList.toggle("paid", nextVal === paidVal);
         b.disabled = true;
         try {
-          await sb.from(parts[0]).update({ status: "pago" }).eq("id", parts[1]);
-          fetchTable(parts[0]);
-        } catch (e) {
-          if (row) row.classList.remove("paid");
+          await sb.from(table).update({ status: nextVal }).eq("id", id);
+          fetchTable(table);
+        } catch (e) {} finally {
           b.disabled = false;
         }
       };
@@ -1473,7 +1519,9 @@
       btn.disabled = true; btn.textContent = editId ? "Atualizando…" : "Salvando…";
       try {
         if (kind === "entradaPessoal") {
-          await sb.from("entradas_pessoal").insert([{ valor: parseMoney(fd.get("valor")), data: fd.get("data"), categoria: fd.get("categoria"), status: fd.get("status"), obs: fd.get("obs") || "" }]);
+          var payloadEP = { valor: parseMoney(fd.get("valor")), data: fd.get("data"), categoria: fd.get("categoria"), status: fd.get("status"), obs: fd.get("obs") || "" };
+          if (editId) { await sb.from("entradas_pessoal").update(payloadEP).eq("id", editId); }
+          else { await sb.from("entradas_pessoal").insert([payloadEP]); }
           fetchTable("entradas_pessoal");
         } else if (kind === "saidaPessoal") {
           var payloadSP = { valor: parseMoney(fd.get("valor")), data: fd.get("data"), categoria: fd.get("categoria"), fixo: fd.get("fixo") === "on", status: fd.get("status"), obs: fd.get("obs") || "" };
