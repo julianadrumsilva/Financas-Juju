@@ -8,35 +8,40 @@
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Finanças">
-<meta name="theme-color" content="#A8402A">
+<meta name="theme-color" content="#8A5A42">
 <link rel="icon" type="image/png" href="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAEAAAABACAYAAACqaXHeAAAACXBIWXMAAAsTAAALEwEAmpwYAAAEMElEQVR4nO2a224bRwyGP+7MrrSSD3HiQ9G0QJG26EXf/y16014UKJCTD3GcxJZWu9yLWcnrw0qO4wQI0B8gSJDI4ZD/kORwSPnPcf/nf1OQZwLwJ3ADuAGuA9vA18A14C/gNvAHcB/4FXgE/AN8Ar4C14AbYAs4A86AK2ADHANnwF/AP8AX4Btg85mX+UwB+Af4A/gJ+BX4GfgO+AT8DvwA/A68Bz4B74EfgV+AH4HfgD+Bz8DfwA3wCbgEzoFT4Bg4Bz4Ab4B3wCtgAxwDJ8AJcASsgR3gJbABtoAN8AI4Ad4Cb4FjYAtsgCNgDRwAG+AlsAHWwCGwBraBl8ARsAU2wCGwAdbAIfACeAG8AN4A74ANsAEOgQ2wATbAGngBHAFH3z/o/U94q78AO7/VHMFHAAAAAElFTkSuQmCC">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700;12..96,800&family=Figtree:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
 :root{
-  --paper:#F6F1E8; --card:#FFFFFF; --ink:#2A2019; --soft:#8C7A68; --line:#E8DDCB; --well:#F1E7D7;
-  --violet:#A8402A; --violet-bg:#F3DBCB; --rose:#9C3A4E; --mint:#4F6B3F; --mint-bg:#E1E8D6;
-  --sun:#C08A1E; --sun-bg:#F6E8C9; --bad:#A23434; --bad-bg:#F5DCD3;
-  --amber:#B4701E; --amber-bg:#F3E1C9; --wine:#6E3550; --wine-bg:#EBD9E1;
-  --hero:linear-gradient(135deg,#7A2A3A 0%,#A8402A 55%,#D9922F 100%);
-  --hero-berga:linear-gradient(135deg,#8F3A1E 0%,#C1612E 55%,#D9A62E 100%);
-  --hero-brecho:linear-gradient(135deg,#2E4023 0%,#4F6B3F 55%,#8A9A4E 100%);
+  --paper:#F3F1EC; --card:#FFFFFF; --ink:#2B2A27; --soft:#847E73; --line:#E2DED3; --well:#EEEAE1;
+  --violet:#8A5A42; --violet-bg:#EFE1D6; --rose:#86586A; --mint:#4F6B3F; --mint-bg:#E1E8D6;
+  --sun:#B08A2E; --sun-bg:#F3E9CC; --bad:#A3463B; --bad-bg:#F3DCD6;
+  --amber:#9C7A3E; --amber-bg:#EFE4CC; --wine:#5E4A66; --wine-bg:#E7E0EA;
+  --hero:linear-gradient(135deg,#3C3A36 0%,#55504A 55%,#746A58 100%);
+  --hero-berga:linear-gradient(135deg,#3E4F32 0%,#5B7249 55%,#8A9A5E 100%);
+  --hero-brecho:linear-gradient(135deg,#243420 0%,#3A4F2E 55%,#59724A 100%);
   --display:"Bricolage Grotesque","Segoe UI",system-ui,sans-serif;
   --body:"Figtree","Segoe UI",system-ui,-apple-system,sans-serif;
   box-sizing:border-box;
   padding-top:env(safe-area-inset-top,0px); padding-bottom:env(safe-area-inset-bottom,0px);
 }
 @media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
-  --paper:#19130E; --card:#241C15; --ink:#F2E9DC; --soft:#B5A28C; --line:#3C2F22; --well:#2B2218;
-  --violet:#E2855A; --violet-bg:#3C2416; --rose:#D98A99; --mint:#8FB07A; --mint-bg:#263321;
-  --sun:#E8B84F; --sun-bg:#3A2D14; --bad:#E27B6B; --bad-bg:#3C211B;
-  --amber:#DDA259; --amber-bg:#3A2A16; --wine:#C98FAE; --wine-bg:#3A2630;}}
+  --paper:#181613; --card:#211E19; --ink:#EDE8DF; --soft:#AFA595; --line:#37332A; --well:#272319;
+  --violet:#C99478; --violet-bg:#3A2C22; --rose:#C2919F; --mint:#8FB07A; --mint-bg:#263321;
+  --sun:#D9B861; --sun-bg:#362B14; --bad:#D98A7D; --bad-bg:#3A231E;
+  --amber:#C9A467; --amber-bg:#352914; --wine:#B79FC2; --wine-bg:#2E2733;}}
 :root[data-theme="dark"]{
-  --paper:#19130E; --card:#241C15; --ink:#F2E9DC; --soft:#B5A28C; --line:#3C2F22; --well:#2B2218;
-  --violet:#E2855A; --violet-bg:#3C2416; --rose:#D98A99; --mint:#8FB07A; --mint-bg:#263321;
-  --sun:#E8B84F; --sun-bg:#3A2D14; --bad:#E27B6B; --bad-bg:#3C211B;
-  --amber:#DDA259; --amber-bg:#3A2A16; --wine:#C98FAE; --wine-bg:#3A2630;}
+  --paper:#181613; --card:#211E19; --ink:#EDE8DF; --soft:#AFA595; --line:#37332A; --well:#272319;
+  --violet:#C99478; --violet-bg:#3A2C22; --rose:#C2919F; --mint:#8FB07A; --mint-bg:#263321;
+  --sun:#D9B861; --sun-bg:#362B14; --bad:#D98A7D; --bad-bg:#3A231E;
+  --amber:#C9A467; --amber-bg:#352914; --wine:#B79FC2; --wine-bg:#2E2733;}
+:root[data-theme="light"]{
+  --paper:#F3F1EC; --card:#FFFFFF; --ink:#2B2A27; --soft:#847E73; --line:#E2DED3; --well:#EEEAE1;
+  --violet:#8A5A42; --violet-bg:#EFE1D6; --rose:#86586A; --mint:#4F6B3F; --mint-bg:#E1E8D6;
+  --sun:#B08A2E; --sun-bg:#F3E9CC; --bad:#A3463B; --bad-bg:#F3DCD6;
+  --amber:#9C7A3E; --amber-bg:#EFE4CC; --wine:#5E4A66; --wine-bg:#E7E0EA;}
 *,*::before,*::after{box-sizing:inherit}
 html{height:100%;scroll-padding-top:env(safe-area-inset-top,0px)}
 body{margin:0;background:var(--paper);color:var(--ink);font-family:var(--body);font-size:16px;line-height:1.45;-webkit-font-smoothing:antialiased}
@@ -115,7 +120,7 @@ nav.bn button[aria-selected="true"]::after{content:"";position:absolute;top:0;le
 .ctcard .ed{position:absolute;top:8px;right:8px;background:rgba(255,255,255,.22);border:0;color:#fff;width:26px;height:26px;border-radius:8px;font-size:13px;cursor:pointer}
 
 /* fatura/cartão card */
-.fatcard{border-radius:20px;padding:16px;color:#fff;background:radial-gradient(120% 140% at 100% 0%,#5A4426 0%,#2B2114 55%,#19130D 100%);margin-bottom:12px}
+.fatcard{border-radius:20px;padding:16px;color:#fff;background:radial-gradient(120% 140% at 100% 0%,#4A443D 0%,#2A2621 55%,#1B1814 100%);margin-bottom:12px}
 .fatcard .ft{display:flex;justify-content:space-between;align-items:flex-start;gap:10px}
 .fatcard small{font-size:12px;opacity:.75}
 .fatcard .fv{font-family:var(--display);font-size:clamp(26px,8vw,34px);font-weight:800;margin:2px 0 10px}
@@ -155,6 +160,7 @@ footer{color:var(--soft);font-size:12px;text-align:center;margin-top:28px}
 }
 @media (prefers-reduced-motion:reduce){*{transition:none!important}}
 </style>
+<script>try{var _t=localStorage.getItem('fin2-tema'); if(_t==='light'||_t==='dark') document.documentElement.setAttribute('data-theme',_t);}catch(e){}</script>
 </head>
 <body>
 <main>
@@ -635,8 +641,16 @@ function sheetInsumo(rec){
     <div class="actions"><button type="button" class="btn ghost" data-act="fechar">Cancelar</button><button type="submit" class="btn">${rec?"Atualizar":"Salvar"}</button></div>
     </form>`;
 }
+function temaAtual(){ try{ return localStorage.getItem('fin2-tema')||'auto'; }catch(e){ return 'auto'; } }
 function sheetAjustes(){
+  const t=temaAtual();
   return `<h3>Ajustes</h3>
+    <div class="muted" style="margin-bottom:10px">Tema</div>
+    <div class="subtabs" style="margin-bottom:18px">
+      <button data-act="tema" data-v="light" aria-pressed="${t==='light'}">Claro</button>
+      <button data-act="tema" data-v="dark" aria-pressed="${t==='dark'}">Escuro</button>
+      <button data-act="tema" data-v="auto" aria-pressed="${t==='auto'}">Automático</button>
+    </div>
     <div class="muted" style="margin-bottom:14px">Finanças Ju &amp; Bêrga — feito pra vocês duas.</div>
     <button class="btn ghost full" data-act="sair">Sair da conta</button>`;
 }
@@ -660,6 +674,14 @@ document.addEventListener("click", e=>{
   if(a==="fechar"){ closeSheet(); return; }
   if(a==="sair"){ closeSheet(); sb.auth.signOut(); location.reload(); return; }
   if(a==="ajustes"){ openSheet(sheetAjustes()); return; }
+  if(a==="tema"){
+    const v=b.dataset.v;
+    try{ localStorage.setItem('fin2-tema', v); }catch(e){}
+    if(v==='auto') document.documentElement.removeAttribute('data-theme');
+    else document.documentElement.setAttribute('data-theme', v);
+    openSheet(sheetAjustes());
+    return;
+  }
   if(a==="irTab"){ closeSheet(); tab=b.dataset.v; render(); return; }
   if(a==="irGastos"){
     closeSheet(); tab="gastos"; const v=b.dataset.v;
