@@ -820,8 +820,19 @@ async function sincronizar(){
   const c=lerCache();
   if(pend&&c&&c.S){ merge(c.S); } else if(!(ready&&saveT)){ merge(data&&data.estado); }
   ready=true;
-  if(pend||!data||!data.estado) await save(); else lastSaved=JSON.stringify(S);
-  guardarCache(); render(); if(!saveT)setSave(pend?"Sincronizado ✓":"Salvo");
+  if(pend){
+    await save();
+  } else if(!data||!data.estado){
+    // a tabela sempre tem a linha 'casal' — se isso vier vazio é uma falha de leitura, não uma conta nova.
+    // NUNCA salva sozinho aqui, pra não sobrescrever os dados reais no servidor com um estado vazio.
+    console.warn("fin_plano: a sincronização não trouxe dados do servidor. Nada foi sobrescrito.");
+    lastSaved="";
+    setSave("Erro ao buscar dados: resposta vazia do servidor");
+    toast("Não veio nada do servidor — nada foi apagado, tenta recarregar.");
+  } else {
+    lastSaved=JSON.stringify(S);
+  }
+  guardarCache(); render(); if(!saveT && lastSaved)setSave(pend?"Sincronizado ✓":"Salvo");
   conectado=true;
   sb.channel("fin2-casal")
     .on("postgres_changes",{event:"*",schema:"public",table:"fin_plano",filter:"id=eq.casal"},p=>{
